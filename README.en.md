@@ -8,7 +8,7 @@
 
 Connect to your TeamSpeak 3 server, browse channels, talk and send messages.
 
-[![macOS](https://img.shields.io/badge/macOS-14%2B-303030?logo=apple&logoColor=white)](#quick-start) [![SwiftUI](https://img.shields.io/badge/UI-SwiftUI-F05138?logo=swift&logoColor=white)](Native/) [![Rust](https://img.shields.io/badge/Core-Rust-6E4C38?logo=rust&logoColor=white)](Core/) [![MIT](https://img.shields.io/badge/License-MIT-2E745C)](LICENSE) [![Release](https://img.shields.io/badge/Release-0.1.7-2E745C)](https://github.com/Green-hats/QuietSpeak/releases/latest) [![CI](https://github.com/Green-hats/QuietSpeak/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Green-hats/QuietSpeak/actions/workflows/ci.yml)
+[![macOS](https://img.shields.io/badge/macOS-14%2B-303030?logo=apple&logoColor=white)](#quick-start) [![SwiftUI](https://img.shields.io/badge/UI-SwiftUI-F05138?logo=swift&logoColor=white)](Native/) [![Rust](https://img.shields.io/badge/Core-Rust-6E4C38?logo=rust&logoColor=white)](Core/) [![MIT](https://img.shields.io/badge/License-MIT-2E745C)](LICENSE) [![Release](https://img.shields.io/badge/Release-0.1.8-2E745C)](https://github.com/Green-hats/QuietSpeak/releases/latest) [![CI](https://github.com/Green-hats/QuietSpeak/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Green-hats/QuietSpeak/actions/workflows/ci.yml)
 
 [简体中文](README.md) · [**English**](README.en.md)
 
@@ -34,11 +34,11 @@ Captured from a native window with fictional servers, members and messages.
 | Messages | Send and receive channel messages; receive server and private messages |
 | macOS integration | Menu bar controls, speaker test, UserDefaults bookmarks and Keychain identity / remembered passwords |
 
-Current version: **0.1.7**, with a Simplified Chinese UI. [Release notes and checksums](https://github.com/Green-hats/QuietSpeak/releases/tag/v0.1.7).
+Current version: **0.1.8**, with a Simplified Chinese UI. [Release notes and checksums](https://github.com/Green-hats/QuietSpeak/releases/tag/v0.1.8).
 
 ## Quick start
 
-Download: [Apple Silicon](https://github.com/Green-hats/QuietSpeak/releases/download/v0.1.7/QuietSpeak-0.1.7-macOS-arm64.zip) · [Intel](https://github.com/Green-hats/QuietSpeak/releases/download/v0.1.7/QuietSpeak-0.1.7-macOS-x86_64.zip). Extract the archive, move `QuietSpeak.app` into Applications and open it. Requires macOS 14+.
+Download: [Apple Silicon](https://github.com/Green-hats/QuietSpeak/releases/download/v0.1.8/QuietSpeak-0.1.8-macOS-arm64.dmg) · [Intel](https://github.com/Green-hats/QuietSpeak/releases/download/v0.1.8/QuietSpeak-0.1.8-macOS-x86_64.dmg). Open the DMG, drag `QuietSpeak.app` into Applications and open it. Requires macOS 14+.
 
 Building from source also requires Xcode Command Line Tools (including `swift-format`), Rust, CMake and Python 3.9+. Xcode 26+ is recommended for Liquid Glass. Rust 1.95.0 is pinned in `rust-toolchain.toml`.
 

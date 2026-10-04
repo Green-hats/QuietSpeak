@@ -25,7 +25,7 @@ xcrun swift-format format --in-place --recursive --configuration .swift-format N
 
 ## 验证范围
 
-0.1.7 已通过本机 Apple Silicon 构建、签名、15 项 Rust 测试和 Swift 模型检查。自动测试覆盖编解码、帧拼接、重采样、包乱序 / 回绕、聊天回显、地址和频道排序，不自动连接公共服务器或打开麦克风。
+0.1.8 已通过本机 Apple Silicon 构建、签名、15 项 Rust 测试和 Swift 模型检查。自动测试覆盖编解码、帧拼接、重采样、包乱序 / 回绕、聊天回显、地址和频道排序，不自动连接公共服务器或打开麦克风。
 
 双端语音、蓝牙、Intel 实机及更多 macOS 版本仍需验收。相关改动在 PR 中记录 macOS、架构、设备、频道编码和结果；远端构建结果见 [Actions](https://github.com/Green-hats/QuietSpeak/actions)。
 
@@ -40,9 +40,9 @@ python3 Scripts/package-release.py
 (cd dist/releases && shasum -a 256 -c SHA256SUMS-arm64.txt)
 ```
 
-打包生成当前架构的 App ZIP、源码 ZIP 和 SHA-256 文件。Opus 静态链接，App 使用 ad-hoc 签名；Developer ID 签名与公证尚未接入。
+打包生成当前架构的 App DMG、源码 ZIP 和 SHA-256 文件。Opus 静态链接，App 使用 ad-hoc 签名；Developer ID 签名与公证尚未接入。
 
-维护者决定发布并完成验收后，推送与 VERSION 相符的 `v版本` 标签。工作流完成双架构构建并创建 **Release 草稿**；核对安装包、源码、校验文件和说明后再手动发布。当前已公开发布 [0.1.7](https://github.com/Green-hats/QuietSpeak/releases/tag/v0.1.7)。
+维护者决定发布并完成验收后，推送与 VERSION 相符的 `v版本` 标签。工作流完成双架构构建并创建 **Release 草稿**；核对安装包、源码、校验文件和说明后再手动发布。当前已公开发布 [0.1.8](https://github.com/Green-hats/QuietSpeak/releases/tag/v0.1.8)。
 
 ## 第三方与后续工作
 

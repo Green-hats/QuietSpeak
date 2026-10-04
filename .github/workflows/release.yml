@@ -31,6 +31,13 @@ jobs:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           python3 Scripts/check-version.py --tag "$RELEASE_TAG"
+          cat release-files/SHA256SUMS-*.txt > release-files/SHA256SUMS.txt
+          (cd release-files && sha256sum --check SHA256SUMS.txt)
+          rm release-files/SHA256SUMS-arm64.txt release-files/SHA256SUMS-x86_64.txt
+          if gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
+            echo "Release already exists for $RELEASE_TAG; refusing to create a duplicate." >&2
+            exit 1
+          fi
           gh release create "$RELEASE_TAG" release-files/* \
             --draft --verify-tag --title "QuietSpeak $RELEASE_TAG" \
             --notes-file Docs/RELEASE_NOTES.md

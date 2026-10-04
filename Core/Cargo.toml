@@ -1,6 +1,6 @@
 [package]
 name = "quietspeak-core"
-version = "0.1.7"
+version = "0.1.8"
 edition = "2021"
 license = "MIT"
 description = "Native macOS TeamSpeak 3 client protocol and audio bridge"
