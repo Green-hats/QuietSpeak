@@ -11,85 +11,86 @@ struct MainView: View {
     @AppStorage("nativeChannelSidebarVisible") private var showChannels = true
     @State private var chatDraft = ""
     var body: some View {
-        VStack(spacing: 0) {
-            navigation.navigationSplitViewStyle(.balanced)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            voiceBar.padding(.horizontal, 12).padding(.vertical, 10)
-        }
-        .focusedSceneValue(\.channelSidebarVisibility, $showChannels)
-        .sheet(isPresented: $client.showConnection) {
-            ConnectionSheet(bookmark: client.selectedServer, isNew: false).environmentObject(
-                client)
-        }
-        .sheet(isPresented: $adding) {
-            ConnectionSheet(bookmark: nil, isNew: true).environmentObject(client)
-        }
-        .sheet(item: $editing) { item in
-            ConnectionSheet(bookmark: item, isNew: false).environmentObject(client)
-        }
-        .sheet(isPresented: $client.showSettings) { SettingsSheet().environmentObject(client) }
-        .alert(
-            "无法完成操作",
-            isPresented: Binding(
-                get: { client.error != nil }, set: { if !$0 { client.error = nil } })
-        ) {
-            Button("好", role: .cancel) { client.error = nil }
-        } message: {
-            Text(client.error ?? "")
-        }
-        .alert(
-            "频道密码",
-            isPresented: Binding(
-                get: { lockedChannel != nil },
-                set: {
-                    if !$0 {
-                        lockedChannel = nil
-                        channelPassword = ""
-                    }
-                })
-        ) {
-            SecureField("请输入频道密码", text: $channelPassword)
-            Button("加入") {
-                client.joinSelected(password: channelPassword)
-                lockedChannel = nil
-                channelPassword = ""
+        navigation.navigationSplitViewStyle(.balanced)
+            .focusedSceneValue(\.channelSidebarVisibility, $showChannels)
+            .sheet(isPresented: $client.showConnection) {
+                ConnectionSheet(bookmark: client.selectedServer, isNew: false).environmentObject(
+                    client)
             }
-            Button("取消", role: .cancel) {
-                lockedChannel = nil
-                channelPassword = ""
+            .sheet(isPresented: $adding) {
+                ConnectionSheet(bookmark: nil, isNew: true).environmentObject(client)
             }
-        } message: {
-            Text("加入 \(lockedChannel?.name ?? "")")
-        }
+            .sheet(item: $editing) { item in
+                ConnectionSheet(bookmark: item, isNew: false).environmentObject(client)
+            }
+            .sheet(isPresented: $client.showSettings) { SettingsSheet().environmentObject(client) }
+            .alert(
+                "无法完成操作",
+                isPresented: Binding(
+                    get: { client.error != nil }, set: { if !$0 { client.error = nil } })
+            ) {
+                Button("好", role: .cancel) { client.error = nil }
+            } message: {
+                Text(client.error ?? "")
+            }
+            .alert(
+                "频道密码",
+                isPresented: Binding(
+                    get: { lockedChannel != nil },
+                    set: {
+                        if !$0 {
+                            lockedChannel = nil
+                            channelPassword = ""
+                        }
+                    })
+            ) {
+                SecureField("请输入频道密码", text: $channelPassword)
+                Button("加入") {
+                    client.joinSelected(password: channelPassword)
+                    lockedChannel = nil
+                    channelPassword = ""
+                }
+                Button("取消", role: .cancel) {
+                    lockedChannel = nil
+                    channelPassword = ""
+                }
+            } message: {
+                Text("加入 \(lockedChannel?.name ?? "")")
+            }
     }
     private var columnVisibility: Binding<NavigationSplitViewVisibility> {
         Binding(
-            get: { showServers ? .all : (showChannels ? .doubleColumn : .detailOnly) },
+            get: { showServers ? .all : .detailOnly },
             set: { visibility in
-                if visibility == .all {
+                if visibility == .all || visibility == .doubleColumn {
                     showServers = true
-                } else if visibility == .doubleColumn {
-                    showServers = !showChannels
                 } else if visibility == .detailOnly {
                     showServers = false
                 }
             })
     }
-    @ViewBuilder private var navigation: some View {
-        if showChannels {
-            NavigationSplitView(columnVisibility: columnVisibility) {
-                servers
-            } content: {
-                channelList
-            } detail: {
-                detail
+    private var navigation: some View {
+        NavigationSplitView(columnVisibility: columnVisibility) {
+            servers
+        } detail: {
+            VStack(spacing: 0) {
+                Group {
+                    if showChannels {
+                        HSplitView {
+                            channelList.frame(minWidth: 210, idealWidth: 260, maxWidth: 380)
+                            detail.layoutPriority(1)
+                        }
+                    } else {
+                        detail
+                    }
+                }.frame(maxWidth: .infinity, maxHeight: .infinity)
+                voiceBar.padding(.horizontal, 12).padding(.vertical, 10)
             }
-        } else {
-            NavigationSplitView(columnVisibility: columnVisibility) {
-                servers
-            } detail: {
-                detail
-            }
+            .frame(minWidth: showChannels ? 584 : 540)
+            .navigationTitle(client.connected ? client.serverName : "轻语")
+            .navigationSubtitle(
+                client.connected ? "\(client.channels.count) 个频道 · \(client.members.count) 位成员" : ""
+            )
         }
     }
     private var detail: some View {
@@ -177,13 +178,7 @@ struct MainView: View {
                 }.allowsHitTesting(false)
             }
         }
-        .navigationTitle(
-            client.connected ? client.serverName : (client.selectedServer?.name ?? "频道")
-        )
-        .navigationSubtitle(
-            client.connected ? "\(client.channels.count) 个频道 · \(client.members.count) 位成员" : ""
-        )
-        .navigationSplitViewColumnWidth(min: 210, ideal: 260, max: 380)
+
     }
     private var flatChannels: [(channel: Channel, depth: Int)] {
         var output: [(channel: Channel, depth: Int)] = []
@@ -290,57 +285,65 @@ struct MainView: View {
                 }.padding(.horizontal, 18).padding(.vertical, 8).background(
                     Color.orange.opacity(0.06))
             }
-            HStack(spacing: 12) {
+            ViewThatFits(in: .horizontal) {
+                voiceControls(compact: false)
+                voiceControls(compact: true)
+            }
+        }.modifier(VoicePanelMaterial())
+    }
+    private func voiceControls(compact: Bool) -> some View {
+        HStack(spacing: compact ? 8 : 12) {
+            if !compact {
                 Image(systemName: "person.crop.circle").font(.system(size: 24))
                     .foregroundStyle(.secondary)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(
-                        client.members.first(where: { $0.id == client.ownID })?.name ?? client
-                            .selectedServer?.nickname ?? "你"
-                    )
-                    .font(.system(size: 12, weight: .semibold)).lineLimit(1)
-                    if let channel = client.joined {
-                        Text(channel.name).font(.system(size: 10)).foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
-                }.frame(width: 120, alignment: .leading)
-                Divider().frame(height: 28)
-                voiceButton(
-                    client.microphoneEnabled ? "mic.fill" : "mic.slash.fill",
-                    label: client.microphoneEnabled ? "关闭麦克风" : "开启麦克风",
-                    active: client.microphoneEnabled
-                ) { client.toggleMicrophone() }
-                voiceButton(
-                    client.deafened ? "speaker.slash.fill" : "headphones",
-                    label: client.deafened ? "恢复耳机" : "耳机静音", active: client.deafened
-                ) { client.toggleDeafen() }
-                Spacer(minLength: 16)
-                Picker("说话方式", selection: $client.talkMode) {
-                    ForEach(TalkMode.allCases) { Text($0.rawValue).tag($0) }
+            }
+            VStack(alignment: .leading, spacing: 3) {
+                Text(
+                    client.members.first(where: { $0.id == client.ownID })?.name ?? client
+                        .selectedServer?.nickname ?? "你"
+                )
+                .font(.system(size: 12, weight: .semibold)).lineLimit(1)
+                if let channel = client.joined {
+                    Text(channel.name).font(.system(size: 10)).foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
-                .labelsHidden().frame(width: 110).disabled(!client.connected)
-                .onChange(of: client.talkMode) {
-                    client.holding = false
-                    client.updateAudio()
-                }
-                if client.talkMode == .pushToTalk {
-                    HoldToTalk(
-                        enabled: client.connected && client.microphoneEnabled && !client.deafened,
-                        active: client.transmitting, onHold: client.setHolding
-                    )
-                    .frame(width: 162, height: 34)
-                    .help("按住按钮或 ⌥ Option 说话；键盘快捷键仅在轻语位于前台时生效")
-                } else {
-                    Label(
-                        client.microphoneRequested
-                            ? (client.canSendAudio ? "麦克风已开启" : "等待话语权限") : "麦克风已关闭",
-                        systemImage: client.transmitting ? "waveform" : "mic.slash"
-                    )
-                    .font(.system(size: 11)).foregroundStyle(
-                        client.transmitting ? Palette.accent : Color.secondary)
-                }
-            }.padding(.horizontal, 16).frame(height: 54)
-        }.modifier(VoicePanelMaterial())
+            }.frame(width: compact ? 80 : 120, alignment: .leading)
+            Divider().frame(height: 28)
+            voiceButton(
+                client.microphoneEnabled ? "mic.fill" : "mic.slash.fill",
+                label: client.microphoneEnabled ? "关闭麦克风" : "开启麦克风",
+                active: client.microphoneEnabled
+            ) { client.toggleMicrophone() }
+            voiceButton(
+                client.deafened ? "speaker.slash.fill" : "headphones",
+                label: client.deafened ? "恢复耳机" : "耳机静音", active: client.deafened
+            ) { client.toggleDeafen() }
+            Spacer(minLength: 16)
+            Picker("说话方式", selection: $client.talkMode) {
+                ForEach(TalkMode.allCases) { Text($0.rawValue).tag($0) }
+            }
+            .labelsHidden().frame(width: compact ? 100 : 110).disabled(!client.connected)
+            .onChange(of: client.talkMode) {
+                client.holding = false
+                client.updateAudio()
+            }
+            if client.talkMode == .pushToTalk {
+                HoldToTalk(
+                    enabled: client.connected && client.microphoneEnabled && !client.deafened,
+                    active: client.transmitting, onHold: client.setHolding
+                )
+                .frame(width: compact ? 130 : 162, height: 34)
+                .help("按住按钮或 ⌥ Option 说话；键盘快捷键仅在轻语位于前台时生效")
+            } else {
+                Label(
+                    client.microphoneRequested
+                        ? (client.canSendAudio ? "麦克风已开启" : "等待话语权限") : "麦克风已关闭",
+                    systemImage: client.transmitting ? "waveform" : "mic.slash"
+                )
+                .font(.system(size: 11)).foregroundStyle(
+                    client.transmitting ? Palette.accent : Color.secondary)
+            }
+        }.padding(.horizontal, compact ? 12 : 16).frame(height: 54)
     }
     private func voiceButton(
         _ icon: String, label: String, active: Bool, action: @escaping () -> Void

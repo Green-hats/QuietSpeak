@@ -1,6 +1,6 @@
 # 轻语 QuietSpeak
 
-简洁实用的原生 macOS TeamSpeak 3 开源客户端。当前版本为 **0.1.6 开发预览**，界面为简体中文。
+简洁实用的原生 macOS TeamSpeak 3 开源客户端。当前版本为 **0.1.7 开发预览**，界面为简体中文。
 
 [English](README.en.md) · [MIT 许可证](LICENSE) · [贡献指南](CONTRIBUTING.md) · [更新记录](CHANGELOG.md) · [开发路线](Docs/ROADMAP.md)
 
@@ -33,7 +33,7 @@ open dist/QuietSpeak.app
 
 使用虚构数据的原生 macOS 窗口预览。[深色外观](Docs/screenshots/quietspeak-dark.jpg)。
 
-使用系统工具栏的侧栏按钮显示或隐藏服务器栏；“显示 → 显示频道列表”（`⌘⇧2`）控制频道栏。系统分隔线可调整宽度，分栏显示状态在退出后保留。白色内容区搭配系统侧栏材质，绿色用于 Logo、操作和说话状态。
+使用系统工具栏的侧栏按钮显示或隐藏服务器栏；“显示 → 显示频道列表”（`⌘⇧2`）控制频道栏。系统分隔线可调整宽度，分栏显示状态在退出后保留。底部语音条只横跨右侧频道和聊天区，服务器栏独立延伸到底部；窄窗口自动使用紧凑控件。白色内容区搭配系统侧栏材质，绿色用于 Logo、操作和说话状态。
 
 首页 Logo 居中放在右侧内容区。[浅色首页](Docs/screenshots/quietspeak-home-light.jpg) · [深色首页](Docs/screenshots/quietspeak-home-dark.jpg)。
 
@@ -66,7 +66,7 @@ Swift 负责用户操作，Rust 处理协议和音频。Rust 核心与 Opus 静�
 
 ## 项目架构
 
-以下图示对应当前 0.1.6 源码。整个客户端运行在一个 macOS App 进程内，Rust 核心和 Opus 静态链接到 App。
+以下图示对应当前 0.1.7 源码。整个客户端运行在一个 macOS App 进程内，Rust 核心和 Opus 静态链接到 App。
 
 ```mermaid
 flowchart TB

@@ -1,6 +1,6 @@
 # QuietSpeak
 
-A compact native macOS TeamSpeak 3 client, built with SwiftUI and Rust. **0.1.6 development preview**. The current UI is in Simplified Chinese.
+A compact native macOS TeamSpeak 3 client, built with SwiftUI and Rust. **0.1.7 development preview**. The current UI is in Simplified Chinese.
 
 [中文](README.md) · [MIT license](LICENSE) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) · [Roadmap](Docs/ROADMAP.md)
 
@@ -17,6 +17,8 @@ Source is public; installer Releases remain drafts. Build locally using the inst
 Native macOS window with fixture data. [Dark appearance](Docs/screenshots/quietspeak-dark.jpg).
 
 Use the system toolbar sidebar button for servers and View → Show Channel List (`⌘⇧2`) for channels. Visibility persists across restarts and native dividers resize the panes. White content and system sidebar materials use green only for branding, actions and speaking states.
+
+The voice bar spans only the channel and chat workspace; the server sidebar extends to the bottom. Controls become compact in narrow windows.
 
 The home logo is centered in the content pane. [Light home](Docs/screenshots/quietspeak-home-light.jpg) · [Dark home](Docs/screenshots/quietspeak-home-dark.jpg).
 
