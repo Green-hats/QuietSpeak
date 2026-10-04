@@ -1,42 +1,57 @@
-# 贡献指南
+# 开发与贡献
 
-欢迎提交问题、文档改进和代码。界面目前为简体中文，Issue 和 PR 可以使用中文或英文。
+欢迎提交 Issue 和 PR，中文或英文均可。尊重不同观点，不公开密码、身份密钥或私人通信；安全问题请参考 [SECURITY](SECURITY.md)。
 
-## 开发环境
+## 开发
 
-需要 macOS、Xcode Command Line Tools（包含 `swift-format`）、Rust、CMake 和 Python 3.9 或以上。`rust-toolchain.toml` 固定 Rust 版本及 rustfmt/clippy；首次使用会下载对应工具链。
+环境要求和运行方式见 [README](README.md#快速开始)。
 
 ```bash
-./check.sh
-./test.sh
-./build.sh
+./check.sh                   # Rustfmt、Clippy、Swift-format、Shell 语法和版本
+./test.sh                    # Rust 测试与 Swift 模型检查
+./build.sh                   # 构建、签名及 App 校验
 ```
 
-开发缓存位于 `work/build/`，App 位于 `dist/QuietSpeak.app`。不要提交构建产物、服务器密码、身份密钥、证书或私人日志。
+默认缓存为 `work/build/`，App 为 `dist/QuietSpeak.app`；支持 `QUIETSPEAK_BUILD_DIR`、`QUIETSPEAK_APP_PATH`、`CARGO_HOME` 和 `CARGO_TARGET_DIR` 覆盖路径。
 
-## 修改与验证
+从 `main` 创建分支，每个 PR 围绕一个问题，写明行为变化和验证结果。不要提交 `work/`、`dist/`、密码、证书或私人日志。格式化自有代码：
 
-1. 从 `main` 创建分支，围绕一个明确问题修改代码。
-2. Rust 代码使用 `cargo fmt --manifest-path Core/Cargo.toml` 格式化；不要用 `--all` 批量重排第三方代码。
-3. Swift 使用 `xcrun swift-format format --in-place --recursive --configuration .swift-format Native Tests Scripts/make-icon.swift`。
-4. 运行检查、测试和构建；为行为改变添加能复现问题的测试。
-5. 音频或协议改动还需两端手动验收，记录 macOS、架构、设备、频道编码和结果。自动测试不默认连接公共服务器。
-6. PR 写明问题、最终行为和验证结果，关联相应 Issue。
+```bash
+cargo fmt --manifest-path Core/Cargo.toml
+xcrun swift-format format --in-place --recursive --configuration .swift-format Native Tests Scripts/make-icon.swift
+```
 
-FFI 的字符串所有权、线程边界、输入静音和发送权限判断都属于重要行为；相关变更需要具体测试。
+不要使用 `cargo fmt --all` 重排第三方源码。行为改动应有能复现问题的测试；音频、协议和 FFI 改动还需检查线程边界、字符串释放、静音及发送权限，并进行两端手动验收。
 
-## 第三方代码
+## 验证范围
 
-`Vendor/` 保留固定版本和原许可证。修改第三方源码时更新 `Vendor/patches/`、`Vendor/README.md`，并说明上游修订和补丁原因。生成依赖声明：
+0.1.7 已通过本机 Apple Silicon 构建、签名、15 项 Rust 测试和 Swift 模型检查。自动测试覆盖编解码、帧拼接、重采样、包乱序 / 回绕、聊天回显、地址和频道排序，不自动连接公共服务器或打开麦克风。
+
+双端语音、蓝牙、Intel 实机及更多 macOS 版本仍需验收。相关改动在 PR 中记录 macOS、架构、设备、频道编码和结果；远端构建结果见 [Actions](https://github.com/Green-hats/QuietSpeak/actions)。
+
+## 打包与发布
+
+1. 更新 `VERSION`、自有 Cargo 包及锁文件的版本、`Resources/Info.plist` 的短版本和构建号。
+2. 更新 README、CHANGELOG 和供发布工作流使用的 `Docs/RELEASE_NOTES.md`。
+3. 运行检查、测试和构建，再打包：
+
+```bash
+python3 Scripts/package-release.py
+(cd dist/releases && shasum -a 256 -c SHA256SUMS-arm64.txt)
+```
+
+打包生成当前架构的 App ZIP、源码 ZIP 和 SHA-256 文件。Opus 静态链接，App 使用 ad-hoc 签名；Developer ID 签名与公证尚未接入。
+
+维护者决定发布并完成验收后，推送与 VERSION 相符的 `v版本` 标签。工作流完成双架构构建并创建 **Release 草稿**；核对安装包、源码、校验文件和说明后再手动发布。目前仅公开源码，保留安装包草稿。
+
+## 第三方与后续工作
+
+第三方来源及本地补丁见 [Vendor](Vendor/README.md)。更新上游或补丁时保留版权和许可证，更新来源记录及补丁文件，并重新生成声明：
 
 ```bash
 python3 Scripts/generate-notices.py
 ```
 
-依赖更新后重新检查生成的声明和 `Docs/DEPENDENCIES.json`。新增依赖缺少许可证文本时，补齐来自对应上游提交的文本和来源记录，不能静默跳过。
+缺失的许可证文本需按固定上游修订补齐，不能忽略。自有代码按 [MIT](LICENSE) 发布，第三方修改保留原许可。
 
-## 许可
-
-新提交的项目代码按根目录 MIT 许可证发布；第三方修改保留该文件的原许可证。贡献时请确认你有权提交对应内容，并保留所需的版权归属。
-
-功能规划见 [ROADMAP](Docs/ROADMAP.md)，发布流程见 [RELEASING](Docs/RELEASING.md)。
+优先完善设备选择和切换恢复、双端语音及多系统验收；后续考虑全局按键说话、语音激活、回声处理、私信与身份导入，以及签名公证。计划不代表已实现，也没有承诺日期。

@@ -9,8 +9,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 ROOT_FILES = {
     "README.md", "README.en.md", "LICENSE", "VERSION", "rust-toolchain.toml",
-    "CONTRIBUTING.md", "CODE_OF_CONDUCT.md", "SECURITY.md", "CHANGELOG.md",
-    "THIRD_PARTY_NOTICES.txt", "VALIDATION.txt", ".gitignore", ".gitattributes",
+    "CONTRIBUTING.md", "SECURITY.md", "CHANGELOG.md",
+    "THIRD_PARTY_NOTICES.txt", ".gitignore", ".gitattributes",
     ".editorconfig", ".swift-format", "build.sh", "test.sh", "check.sh",
 }
 SOURCE_DIRS = {"Native", "Core", "Vendor", "Resources", "Scripts", "Tests", "Docs", ".github"}
