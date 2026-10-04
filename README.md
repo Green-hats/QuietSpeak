@@ -8,7 +8,7 @@
 
 连接你的 TeamSpeak 3 服务器，浏览频道、语音交流和发送消息。
 
-[![macOS](https://img.shields.io/badge/macOS-14%2B-303030?logo=apple&logoColor=white)](#快速开始) [![SwiftUI](https://img.shields.io/badge/UI-SwiftUI-F05138?logo=swift&logoColor=white)](Native/) [![Rust](https://img.shields.io/badge/Core-Rust-6E4C38?logo=rust&logoColor=white)](Core/) [![MIT](https://img.shields.io/badge/License-MIT-2E745C)](LICENSE) [![Preview](https://img.shields.io/badge/Status-开发预览-2E745C)](CHANGELOG.md) [![CI](https://github.com/Green-hats/QuietSpeak/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Green-hats/QuietSpeak/actions/workflows/ci.yml)
+[![macOS](https://img.shields.io/badge/macOS-14%2B-303030?logo=apple&logoColor=white)](#快速开始) [![SwiftUI](https://img.shields.io/badge/UI-SwiftUI-F05138?logo=swift&logoColor=white)](Native/) [![Rust](https://img.shields.io/badge/Core-Rust-6E4C38?logo=rust&logoColor=white)](Core/) [![MIT](https://img.shields.io/badge/License-MIT-2E745C)](LICENSE) [![Release](https://img.shields.io/badge/Release-0.1.7-2E745C)](https://github.com/Green-hats/QuietSpeak/releases/latest) [![CI](https://github.com/Green-hats/QuietSpeak/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Green-hats/QuietSpeak/actions/workflows/ci.yml)
 
 [**简体中文**](README.md) · [English](README.en.md)
 
@@ -34,11 +34,13 @@
 | 文字消息 | 频道消息收发，接收服务器消息及私信 |
 | macOS 集成 | 菜单栏控制、扬声器测试；收藏存入 UserDefaults，身份和记住的密码存入钥匙串 |
 
-**0.1.7 开发预览**，界面为简体中文。目前公开源码，安装包 Release 保留为草稿。
+当前版本 **0.1.7**，界面为简体中文。[发行说明与校验文件](https://github.com/Green-hats/QuietSpeak/releases/tag/v0.1.7)。
 
 ## 快速开始
 
-需要 **macOS 14+**、Xcode Command Line Tools（包含 `swift-format`）、Rust、CMake 和 Python 3.9+。推荐 Xcode 26+ 以包含 Liquid Glass；Rust 1.95.0 由 `rust-toolchain.toml` 固定。
+下载安装包：[Apple Silicon](https://github.com/Green-hats/QuietSpeak/releases/download/v0.1.7/QuietSpeak-0.1.7-macOS-arm64.zip) · [Intel](https://github.com/Green-hats/QuietSpeak/releases/download/v0.1.7/QuietSpeak-0.1.7-macOS-x86_64.zip)。解压后将 `QuietSpeak.app` 放入“应用程序”并打开；运行需要 macOS 14+。
+
+自行构建还需 Xcode Command Line Tools（包含 `swift-format`）、Rust、CMake 和 Python 3.9+。推荐 Xcode 26+ 以包含 Liquid Glass；Rust 1.95.0 由 `rust-toolchain.toml` 固定。
 
 ```bash
 git clone https://github.com/Green-hats/QuietSpeak.git

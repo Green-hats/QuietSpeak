@@ -42,7 +42,7 @@ python3 Scripts/package-release.py
 
 打包生成当前架构的 App ZIP、源码 ZIP 和 SHA-256 文件。Opus 静态链接，App 使用 ad-hoc 签名；Developer ID 签名与公证尚未接入。
 
-维护者决定发布并完成验收后，推送与 VERSION 相符的 `v版本` 标签。工作流完成双架构构建并创建 **Release 草稿**；核对安装包、源码、校验文件和说明后再手动发布。目前仅公开源码，保留安装包草稿。
+维护者决定发布并完成验收后，推送与 VERSION 相符的 `v版本` 标签。工作流完成双架构构建并创建 **Release 草稿**；核对安装包、源码、校验文件和说明后再手动发布。当前已公开发布 [0.1.7](https://github.com/Green-hats/QuietSpeak/releases/tag/v0.1.7)。
 
 ## 第三方与后续工作
 
