@@ -7,7 +7,7 @@ import SwiftUI
     var body: some Scene {
         WindowGroup("轻语") {
             MainView().environmentObject(client)
-                .frame(minWidth: 920, minHeight: 620)
+                .frame(minWidth: 680, minHeight: 620)
                 .tint(Palette.accent)
                 .onAppear { delegate.client = client }
         }
@@ -60,9 +60,23 @@ import SwiftUI
 }
 
 enum Palette {
-    static let accent = Color(nsColor: .systemBlue)
+    static let accent = Color(red: 0.16, green: 0.47, blue: 0.37)
     static let speaking = Color(nsColor: .systemGreen)
     static let canvas = Color(nsColor: .textBackgroundColor)
-    static let sidebar = Color(nsColor: .windowBackgroundColor)
-    static let selection = Color.primary.opacity(0.07)
+    static let brand = adaptive(light: (0.16, 0.47, 0.37), dark: (0.48, 0.75, 0.63))
+    static let sidebar = adaptive(light: (0.90, 0.94, 0.91), dark: (0.10, 0.16, 0.13))
+    static let channelPanel = adaptive(light: (0.96, 0.975, 0.96), dark: (0.135, 0.185, 0.16))
+    static let toolbar = adaptive(light: (0.95, 0.97, 0.95), dark: (0.13, 0.16, 0.145))
+    static let selection = adaptive(light: (0.81, 0.89, 0.84), dark: (0.16, 0.30, 0.23))
+
+    private static func adaptive(
+        light: (CGFloat, CGFloat, CGFloat), dark: (CGFloat, CGFloat, CGFloat)
+    ) -> Color {
+        Color(
+            nsColor: NSColor(name: nil) { appearance in
+                let rgb =
+                    appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? dark : light
+                return NSColor(srgbRed: rgb.0, green: rgb.1, blue: rgb.2, alpha: 1)
+            })
+    }
 }

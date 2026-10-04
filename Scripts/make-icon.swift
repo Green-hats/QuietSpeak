@@ -5,7 +5,7 @@ import Foundation
     static func main() throws {
         let image = NSImage(size: NSSize(width: 1024, height: 1024))
         image.lockFocus()
-        NSColor(calibratedRed: 0.17, green: 0.22, blue: 0.29, alpha: 1).setFill()
+        NSColor(calibratedRed: 0.16, green: 0.39, blue: 0.30, alpha: 1).setFill()
         NSBezierPath(
             roundedRect: NSRect(x: 40, y: 40, width: 944, height: 944),
             xRadius: 210, yRadius: 210

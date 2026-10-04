@@ -7,20 +7,26 @@ struct MainView: View {
     @State private var adding = false
     @State private var lockedChannel: Channel?
     @State private var channelPassword = ""
+    @AppStorage("showServerSidebar") private var showServers = true
+    @AppStorage("showChannelSidebar") private var showChannels = true
     var body: some View {
         VStack(spacing: 0) {
             header
             Divider()
-            HStack(spacing: 0) {
-                servers.frame(width: 194)
-                Divider()
-                channelList.frame(width: 272)
-                Divider()
-                conversation.frame(maxWidth: .infinity, maxHeight: .infinity)
+            HSplitView {
+                if showServers {
+                    servers.frame(minWidth: 170, idealWidth: 194, maxWidth: 260)
+                }
+                if showChannels {
+                    channelList.frame(minWidth: 220, idealWidth: 272, maxWidth: 360)
+                }
+                conversation.frame(minWidth: 360, maxWidth: .infinity, maxHeight: .infinity)
+                    .layoutPriority(1)
             }
             Divider()
             voiceBar
         }
+        .frame(minWidth: showServers && showChannels ? 920 : 680)
         .background(Palette.canvas)
         .sheet(isPresented: $client.showConnection) {
             ConnectionSheet(bookmark: client.selectedServer, isNew: false).environmentObject(client)
@@ -68,37 +74,58 @@ struct MainView: View {
     }
     private var header: some View {
         HStack(spacing: 10) {
+            sidebarButton("sidebar.left", name: "服务器栏", visible: $showServers)
+            sidebarButton("rectangle.split.2x1", name: "频道栏", visible: $showChannels)
+            Divider().frame(height: 18)
             Circle().fill(client.connected ? Palette.speaking : Color.secondary.opacity(0.4))
                 .frame(width: 6, height: 6)
             Text(client.status.label).font(.system(size: 12)).foregroundStyle(.secondary)
             Spacer()
-            if client.busy {
-                Button {
-                    client.disconnect()
-                } label: {
-                    Label("断开", systemImage: "xmark.circle")
-                }.buttonStyle(.borderless)
-            } else {
-                Button {
-                    client.showConnection = true
-                } label: {
-                    Label("连接", systemImage: "network")
-                }.buttonStyle(.bordered).controlSize(.small)
+            Button {
+                if client.busy { client.disconnect() } else { client.showConnection = true }
+            } label: {
+                HStack(spacing: 7) {
+                    Image(systemName: client.busy ? "xmark.circle" : "network")
+                        .font(.system(size: 18))
+                    Text(client.busy ? "断开" : "连接").font(.system(size: 13, weight: .medium))
+                }
+                .padding(.horizontal, 10).frame(height: 36)
+                .background(Palette.selection, in: RoundedRectangle(cornerRadius: 6))
             }
+            .buttonStyle(.plain).foregroundStyle(Palette.brand)
+            .help(client.busy ? "断开连接" : "连接服务器 ⌘K")
             Button {
                 client.showSettings = true
             } label: {
-                Image(systemName: "slider.horizontal.3").frame(width: 26, height: 26)
+                Image(systemName: "slider.horizontal.3").font(.system(size: 19))
+                    .frame(width: 36, height: 36)
             }
-            .buttonStyle(.plain).help("语音设置 ⌘,")
+            .buttonStyle(.plain).foregroundStyle(Palette.brand).help("语音设置 ⌘,")
+            .accessibilityLabel("语音设置")
         }
-        .padding(.horizontal, 18).frame(height: 44).background(Palette.sidebar)
+        .padding(.horizontal, 16).frame(height: 52).background(Palette.toolbar)
+    }
+    private func sidebarButton(_ icon: String, name: String, visible: Binding<Bool>) -> some View {
+        Button {
+            visible.wrappedValue.toggle()
+        } label: {
+            Image(systemName: icon).font(.system(size: 16))
+                .foregroundStyle(visible.wrappedValue ? Palette.brand : Color.secondary)
+                .frame(width: 34, height: 32)
+                .background(
+                    visible.wrappedValue ? Palette.selection : Color.clear,
+                    in: RoundedRectangle(cornerRadius: 5))
+        }
+        .buttonStyle(.plain)
+        .help((visible.wrappedValue ? "隐藏" : "显示") + name)
+        .accessibilityLabel((visible.wrappedValue ? "隐藏" : "显示") + name)
+        .accessibilityValue(visible.wrappedValue ? "展开" : "折叠")
     }
     private var servers: some View {
         VStack(alignment: .leading, spacing: 18) {
             HStack(spacing: 8) {
                 Image(nsImage: QuietSpeakIcon.template).renderingMode(.template)
-                    .foregroundStyle(.secondary).accessibilityHidden(true)
+                    .foregroundStyle(Palette.brand).accessibilityHidden(true)
                 Text("服务器").font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
                 Spacer()
                 Button {
@@ -118,7 +145,7 @@ struct MainView: View {
                                 Image(systemName: "server.rack").font(.system(size: 18))
                                     .foregroundStyle(
                                         client.selectedBookmark == item.id
-                                            ? Color.primary : Color.secondary
+                                            ? Palette.brand : Color.secondary
                                     )
                                     .frame(width: 32, height: 36)
                                 VStack(alignment: .leading, spacing: 4) {
@@ -202,7 +229,7 @@ struct MainView: View {
                     }.padding(.horizontal, 9).padding(.vertical, 12)
                 }
             }
-        }.background(Palette.canvas)
+        }.background(Palette.channelPanel)
     }
     private var flatChannels: [(channel: Channel, depth: Int)] {
         if !client.search.isEmpty {
@@ -236,7 +263,7 @@ struct MainView: View {
                 Image(systemName: joined ? "waveform" : "number").font(
                     .system(size: 13, weight: .medium)
                 )
-                .foregroundStyle(joined ? Color.primary : Color.secondary)
+                .foregroundStyle(joined ? Palette.brand : Color.secondary)
                 Text(channel.name).font(.system(size: 12, weight: selected ? .semibold : .regular))
                     .lineLimit(1)
                 Spacer(minLength: 2)
@@ -308,18 +335,20 @@ struct MainView: View {
                 ChatPane().environmentObject(client)
             }
         } else {
-            VStack(spacing: 12) {
-                Text(client.busy ? "正在连接…" : "选择服务器")
-                    .font(.system(size: 15, weight: .medium)).foregroundStyle(.secondary)
+            VStack(spacing: 16) {
+                Image(nsImage: QuietSpeakIcon.homepage).renderingMode(.template)
+                    .frame(width: 56, height: 56)
+                    .foregroundStyle(Palette.brand).accessibilityHidden(true)
+                Text("轻语").font(.system(size: 21, weight: .semibold))
                 if client.busy {
                     Text(client.statusDetail).font(.system(size: 12)).foregroundStyle(.secondary)
                         .multilineTextAlignment(.center).frame(maxWidth: 360)
                     ProgressView().controlSize(.small)
                 } else {
                     Button("连接服务器…") { client.showConnection = true }
-                        .buttonStyle(.bordered).controlSize(.regular)
+                        .buttonStyle(.borderedProminent).controlSize(.regular)
                 }
-            }.frame(maxWidth: .infinity, maxHeight: .infinity)
+            }.padding(32).frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
     private var voiceBar: some View {
@@ -387,7 +416,7 @@ struct MainView: View {
                         client.transmitting ? Palette.accent : Color.secondary)
                 }
             }.padding(.horizontal, 20).frame(height: 64)
-        }.background(Palette.sidebar)
+        }.background(Palette.toolbar)
     }
     private func voiceButton(
         _ icon: String, label: String, active: Bool, action: @escaping () -> Void

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "project_version": "0.1.4",
+  "project_version": "0.1.5",
   "scope": "Locked macOS dependency packages including build and development dependencies",
   "packages": [
     {

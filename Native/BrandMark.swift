@@ -31,13 +31,16 @@ enum QuietSpeakIcon {
         }
     }
 
-    static let template: NSImage = {
-        let image = NSImage(size: NSSize(width: 18, height: 18), flipped: false) { rect in
-            draw(in: rect.insetBy(dx: 1, dy: 1), color: .black)
+    static let template = image(size: 18)
+    static let homepage = image(size: 56)
+
+    private static func image(size: CGFloat) -> NSImage {
+        let image = NSImage(size: NSSize(width: size, height: size), flipped: false) { rect in
+            draw(in: rect.insetBy(dx: size / 18, dy: size / 18), color: .black)
             return true
         }
         image.isTemplate = true
         image.accessibilityDescription = "轻语"
         return image
-    }()
+    }
 }

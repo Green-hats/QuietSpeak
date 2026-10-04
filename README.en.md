@@ -1,12 +1,14 @@
 # QuietSpeak
 
-A compact native macOS TeamSpeak 3 client, built with SwiftUI and Rust. **0.1.4 development preview**. The current UI is in Simplified Chinese.
+A compact native macOS TeamSpeak 3 client, built with SwiftUI and Rust. **0.1.5 development preview**. The current UI is in Simplified Chinese.
 
 [中文](README.md) · [MIT license](LICENSE) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) · [Roadmap](Docs/ROADMAP.md)
 
 QuietSpeak uses [ReSpeak/tsclientlib](https://github.com/ReSpeak/tsclientlib) for the TS3 protocol, CPAL for audio devices and Opus for audio coding. The native UI, application behavior, Swift/Rust bridge and device audio pipeline are implemented by QuietSpeak. Vendored sources retain their original licenses; see [Vendor documentation](Vendor/README.md).
 
-[GitHub](https://github.com/Green-hats/QuietSpeak) · [Development releases](https://github.com/Green-hats/QuietSpeak/releases) · [Issues](https://github.com/Green-hats/QuietSpeak/issues)
+[GitHub](https://github.com/Green-hats/QuietSpeak) · [Build status](https://github.com/Green-hats/QuietSpeak/actions) · [Issues](https://github.com/Green-hats/QuietSpeak/issues)
+
+Source is public; installer Releases remain drafts. Build locally using the instructions below.
 
 ## Interface
 
@@ -14,9 +16,13 @@ QuietSpeak uses [ReSpeak/tsclientlib](https://github.com/ReSpeak/tsclientlib) fo
 
 Content view rendered with fixture data. [Dark appearance](Docs/screenshots/quietspeak-dark.png).
 
+The two top-left buttons independently toggle the server and channel sidebars. Visibility persists across restarts; native dividers resize the panes. Green backgrounds distinguish the sidebars from the system content background in both appearances.
+
+The home logo is centered in the content pane. [Light home](Docs/screenshots/quietspeak-home-light.png) · [Dark home](Docs/screenshots/quietspeak-home-dark.png).
+
 ## Features
 
-- Native SwiftUI/AppKit interface, channel tree, member list and channel chat.
+- Green native SwiftUI/AppKit interface with independently collapsible, resizable sidebars, channel tree, member list and channel chat.
 - Server bookmarks, SRV/TSDNS discovery, persistent identity and reconnection.
 - OpusVoice/OpusMusic audio, mixing, resampling and startup jitter buffering.
 - Foreground push-to-talk, continuous microphone mode, mute, deafen and volume.

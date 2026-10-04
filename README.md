@@ -1,12 +1,14 @@
 # 轻语 QuietSpeak
 
-简洁实用的原生 macOS TeamSpeak 3 开源客户端。当前版本为 **0.1.4 开发预览**，界面为简体中文。
+简洁实用的原生 macOS TeamSpeak 3 开源客户端。当前版本为 **0.1.5 开发预览**，界面为简体中文。
 
 [English](README.en.md) · [MIT 许可证](LICENSE) · [贡献指南](CONTRIBUTING.md) · [更新记录](CHANGELOG.md) · [开发路线](Docs/ROADMAP.md)
 
 项目基于 [ReSpeak/tsclientlib](https://github.com/ReSpeak/tsclientlib) 实现 TS3 协议，并使用 CPAL 和 Opus；原生界面、业务逻辑、Swift/Rust 桥接及音频设备处理由 QuietSpeak 实现。第三方来源和补丁见 [Vendor 说明](Vendor/README.md)。
 
-[GitHub 仓库](https://github.com/Green-hats/QuietSpeak) · [下载开发预览](https://github.com/Green-hats/QuietSpeak/releases) · [问题反馈](https://github.com/Green-hats/QuietSpeak/issues)
+[GitHub 仓库](https://github.com/Green-hats/QuietSpeak) · [构建状态](https://github.com/Green-hats/QuietSpeak/actions) · [问题反馈](https://github.com/Green-hats/QuietSpeak/issues)
+
+目前公开源码，安装包 Release 保留为草稿。可以按下方步骤自行构建。
 
 ## 运行
 
@@ -31,9 +33,13 @@ open dist/QuietSpeak.app
 
 使用示例数据渲染的内容区预览。[深色外观](Docs/screenshots/quietspeak-dark.png)。
 
+左上角两个按钮分别显示或隐藏服务器栏、频道栏，退出后保留折叠状态。拖动两栏之间的分隔线可调整宽度。三栏分别使用浅绿、淡绿和系统内容背景，跟随系统切换深浅色。
+
+首页 Logo 居中放在右侧内容区。[浅色首页](Docs/screenshots/quietspeak-home-light.png) · [深色首页](Docs/screenshots/quietspeak-home-dark.png)。
+
 ## 功能
 
-- 原生三栏界面，适配系统深浅色模式。
+- 绿色原生三栏界面，侧栏可独立折叠、调整宽度，适配系统深浅色模式。
 - TS3 服务器连接、SRV/TSDNS 域名发现、固定身份和自动重连。
 - 服务器收藏、频道树、频道搜索、密码频道和可见成员列表。
 - 频道文字消息收发，接收服务器消息和私信。
@@ -59,7 +65,7 @@ Swift 负责用户操作，Rust 处理协议和音频。Rust 核心与 Opus 静�
 
 ## 项目架构
 
-以下图示对应当前 0.1.4 源码。整个客户端运行在一个 macOS App 进程内，Rust 核心和 Opus 静态链接到 App。
+以下图示对应当前 0.1.5 源码。整个客户端运行在一个 macOS App 进程内，Rust 核心和 Opus 静态链接到 App。
 
 ```mermaid
 flowchart TB
