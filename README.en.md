@@ -20,15 +20,10 @@ Connect to your TeamSpeak 3 server, browse channels, talk and send messages in a
 
 ## Screenshots
 
-| Light appearance | Dark appearance |
-| :---: | :---: |
-| <img src="Docs/screenshots/quietspeak-light.jpg" width="480" alt="Light appearance: servers, channels and chat, with voice controls under the right workspace" /> | <img src="Docs/screenshots/quietspeak-dark.jpg" width="480" alt="Dark appearance: channel chat and glass voice controls" /> |
-
-| Home · Light | Home · Dark |
-| :---: | :---: |
-| <img src="Docs/screenshots/quietspeak-home-light.jpg" width="480" alt="Light home: centered QuietSpeak logo and connection button" /> | <img src="Docs/screenshots/quietspeak-home-dark.jpg" width="480" alt="Dark home: server sidebar and voice controls within the right workspace" /> |
+![QuietSpeak light appearance](Docs/screenshots/quietspeak-light.jpg)
 
 Captured from native macOS windows using fictional servers, members and messages.
+
 
 ## Features
 

@@ -20,15 +20,10 @@
 
 ## 界面预览
 
-| 浅色外观 | 深色外观 |
-| :---: | :---: |
-| <img src="Docs/screenshots/quietspeak-light.jpg" width="480" alt="浅色外观：服务器、频道和聊天三栏，底部语音条位于右侧工作区" /> | <img src="Docs/screenshots/quietspeak-dark.jpg" width="480" alt="深色外观：频道聊天和玻璃语音控制条" /> |
-
-| 首页 · 浅色 | 首页 · 深色 |
-| :---: | :---: |
-| <img src="Docs/screenshots/quietspeak-home-light.jpg" width="480" alt="浅色首页：居中的轻语 Logo 与连接按钮" /> | <img src="Docs/screenshots/quietspeak-home-dark.jpg" width="480" alt="深色首页：服务器侧栏和右侧语音控制条" /> |
+![QuietSpeak 浅色外观](Docs/screenshots/quietspeak-light.jpg)
 
 截图来自实际原生窗口，使用虚构的服务器、成员和聊天数据。
+
 
 ## 核心特性
 
