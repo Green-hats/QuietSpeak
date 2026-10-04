@@ -1,0 +1,33 @@
+flowchart TB
+    subgraph SEND["发送语音"]
+        MIC["麦克风 · CPAL / CoreAudio 输入回调"]
+        CAPTURE["Capture<br/>合并为单声道 · 转换为 48kHz"]
+        ENCODE["Opus 编码<br/>20ms 帧 · 每帧 960 个采样点"]
+        OUTQUEUE["语音包队列<br/>Tokio mpsc · 容量 5"]
+        GATE["会话检查<br/>已连接 · 请求发送 · 耳机未静音 · 允许说话"]
+        TX["tsclientlib.send_audio<br/>TS3 UDP 发包"]
+        MIC --> CAPTURE --> ENCODE --> OUTQUEUE --> GATE --> TX
+    end
+
+    SERVER["TeamSpeak 3 服务器"]
+    TX --> SERVER
+
+    subgraph RECEIVE["接收语音"]
+        RX["tsclientlib · StreamItem.Audio"]
+        CHECK["会话检查<br/>允许接收 · 耳机未静音"]
+        QUEUE["按说话者维护队列<br/>乱序接收 · 起播缓冲 · 序号跳变恢复"]
+        DECODE["AudioHandler<br/>Opus 解码 · 丢包处理 · 多人混音"]
+        RENDER["Renderer<br/>播放音量 · 输出采样率和声道转换"]
+        SPEAKER["耳机 / 扬声器 · CPAL / CoreAudio 输出回调"]
+        RX --> CHECK --> QUEUE --> DECODE --> RENDER --> SPEAKER
+    end
+
+    SERVER --> RX
+    LOCAL["测试扬声器<br/>本地提示音"] --> RENDER
+
+    classDef input fill:#eaf1ff,stroke:#6689c7,color:#182e50;
+    classDef audio fill:#e8f5ef,stroke:#4c9977,color:#183e2d;
+    classDef network fill:#fff5e4,stroke:#be9756,color:#593e1b;
+    class MIC,SPEAKER input;
+    class CAPTURE,ENCODE,QUEUE,DECODE,RENDER,LOCAL audio;
+    class OUTQUEUE,GATE,TX,SERVER,RX,CHECK network;

@@ -1,0 +1,1 @@
+Local modifications: build.rs creates cmake::Config with CMAKE_POLICY_VERSION_MINIMUM=3.5 and CMAKE_OSX_DEPLOYMENT_TARGET from the environment (defaults to 14.0). No codec source changes.

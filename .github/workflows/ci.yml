@@ -1,0 +1,58 @@
+name: Build and test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  macos:
+    name: macOS ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.95.0 --profile minimal --component rustfmt --component clippy
+      - name: Validate tag and source version
+        if: github.ref_type == 'tag'
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python3 Scripts/check-version.py --tag "$RELEASE_TAG"
+      - name: Quality checks
+        run: ./check.sh
+      - name: Unit and model tests
+        run: ./test.sh
+      - name: Build signed app
+        run: ./build.sh
+      - name: Package release files
+        env:
+          BUILD_ARCH: ${{ matrix.arch }}
+        run: |
+          if [ "$BUILD_ARCH" = x86_64 ]; then
+            python3 Scripts/package-release.py --skip-source
+          else
+            python3 Scripts/package-release.py
+          fi
+      - name: Upload verified packages
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: QuietSpeak-${{ matrix.arch }}
+          path: dist/releases/*
+          if-no-files-found: error
+          retention-days: 14

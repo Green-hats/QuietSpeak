@@ -1,0 +1,13 @@
+.DS_Store
+work/
+dist/
+Core/target/
+target/
+.build/
+*.dSYM/
+*.xcuserstate
+xcuserdata/
+.env
+.env.*
+*.p12
+*.mobileprovision

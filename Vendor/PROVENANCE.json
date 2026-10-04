@@ -1,0 +1,20 @@
+{
+  "tsclientlib": {
+    "repository": "https://github.com/ReSpeak/tsclientlib",
+    "revision": "ee3bc6f45a7137db7793ba5593a321df400d53e5",
+    "modified_files": [
+      "tsclientlib/src/audio.rs"
+    ],
+    "patch": "patches/tsclientlib-audio.patch"
+  },
+  "audiopus_sys": {
+    "version": "0.2.2",
+    "crate_url": "https://crates.io/api/v1/crates/audiopus_sys/0.2.2/download",
+    "crate_sha256": "62314a1546a2064e033665d658e88c620a62904be945f8147e6b16c3db9f8651",
+    "revision": "84bc4e7603d5ce3098163ec67c1ee980c351ddcc",
+    "modified_files": [
+      "build.rs"
+    ],
+    "patch": "patches/audiopus-sys-build.patch"
+  }
+}

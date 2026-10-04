@@ -1,0 +1,108 @@
+--- a/tsclientlib/src/audio.rs
++++ b/tsclientlib/src/audio.rs
+@@ -41,6 +41,8 @@
+ /// Use 48 kHz, 20 ms frames (50 per second) and mono data (1 channel).
+ /// This means 1920 samples and 7.5 kiB.
+ const USUAL_FRAME_SIZE: usize = 48000 / 50;
++// QuietSpeak: keep three 20 ms packets at startup to tolerate UDP reordering.
++const INITIAL_BUFFER_SAMPLES: usize = USUAL_FRAME_SIZE * 3;
+ 
+ type Result<T> = std::result::Result<T, Error>;
+ 
+@@ -103,6 +105,7 @@
+ 	///
+ 	/// Used to check for packet loss.
+ 	next_id: u16,
++	started: bool,
+ 	/// If the last packet was a whisper packet.
+ 	whispering: bool,
+ 	packet_buffer: VecDeque<QueuePacket>,
+@@ -170,7 +173,6 @@
+ 			return Err(Error::TooManySamples);
+ 		}
+ 
+-		let last_packet_samples = last_packet_samples * CHANNEL_NUM;
+ 		let whispering = matches!(data, AudioData::S2CWhisper { .. });
+ 		let decoder = Decoder::new(SAMPLE_RATE, CHANNELS).map_err(Error::CreateDecoder)?;
+ 
+@@ -189,6 +191,7 @@
+ 			decoder,
+ 			volume: 1.0,
+ 			next_id: data.id(),
++			started: false,
+ 			whispering,
+ 			packet_buffer: Default::default(),
+ 			packet_buffer_samples: 0,
+@@ -248,7 +251,13 @@
+ 		let id = packet.data().data().id();
+ 		let packet = QueuePacket { packet, samples, id };
+ 		if id.wrapping_sub(self.next_id) > MAX_BUFFER_PACKETS as u16 {
+-			return Err(Error::TooLate { wanted: self.next_id, got: id });
++			if !self.started && self.next_id.wrapping_sub(id) <= MAX_BUFFER_PACKETS as u16 {
++				// The first datagram can arrive before an earlier one. Until playback
++				// begins, move the start backwards instead of dropping that packet.
++				self.next_id = id;
++			} else {
++				return Err(Error::TooLate { wanted: self.next_id, got: id });
++			}
+ 		}
+ 
+ 		// Put into first spot where the id is smaller
+@@ -269,12 +278,13 @@
+ 
+ 		trace!("Insert packet {} at {}", id, i);
+ 		let last_id = self.packet_buffer.back().map(|p| p.id.wrapping_add(1)).unwrap_or(id);
+-		if last_id <= id {
+-			self.buffering_samples = self.buffering_samples.saturating_sub(samples);
++		let gap = id.wrapping_sub(last_id);
++		self.buffering_samples = self.buffering_samples.saturating_sub(samples);
++		if gap <= MAX_BUFFER_PACKETS as u16 {
+ 			// Reduce buffering counter by lost packets if there are some
+ 			self.buffering_samples = self
+ 				.buffering_samples
+-				.saturating_sub(usize::from(id - last_id) * self.last_packet_samples);
++				.saturating_sub(usize::from(gap) * self.last_packet_samples);
+ 		}
+ 
+ 		self.packet_buffer_samples += packet.samples;
+@@ -358,7 +368,7 @@
+ 					"Buffered for too long"
+ 				);
+ 			} else {
+-				self.buffered_for_samples += len;
++				self.buffered_for_samples += len / CHANNEL_NUM;
+ 				trace!(
+ 					buffered_for_samples = self.buffered_for_samples,
+ 					buffering_samples = self.buffering_samples,
+@@ -368,6 +378,7 @@
+ 			}
+ 		}
+ 		// Need to refill buffer
++		self.started = true;
+ 		self.decoded_buffer.drain(..self.decoded_pos);
+ 
+ 		while self.decoded_buffer.len() < len {
+@@ -458,7 +469,7 @@
+ }
+ 
+ impl<Id: Clone + Debug + Eq + Hash + PartialEq> Default for AudioHandler<Id> {
+-	fn default() -> Self { Self { queues: Default::default(), avg_buffer_samples: 0 } }
++	fn default() -> Self { Self { queues: Default::default(), avg_buffer_samples: INITIAL_BUFFER_SAMPLES } }
+ }
+ 
+ impl<Id: Clone + Debug + Eq + Hash + PartialEq> AudioHandler<Id> {
+@@ -546,9 +557,11 @@
+ 						.queues
+ 						.values()
+ 						.map(|q| usize::from(q.last_buffer_size_min.get_min()))
+-						.sum::<usize>() / self.queues.len();
+-			}
+-			queue.buffering_samples = self.avg_buffer_samples;
++						.sum::<usize>() * USUAL_FRAME_SIZE / self.queues.len();
++			}
++			self.avg_buffer_samples = self.avg_buffer_samples.clamp(INITIAL_BUFFER_SAMPLES, MAX_BUFFER_SIZE);
++			// The first packet is already queued by AudioQueue::new.
++			queue.buffering_samples = self.avg_buffer_samples.saturating_sub(queue.packet_buffer_samples);
+ 			self.queues.insert(id.clone(), queue);
+ 			Ok(Some(id))
+ 		}

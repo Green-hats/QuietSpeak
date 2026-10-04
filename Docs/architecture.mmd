@@ -1,0 +1,34 @@
+flowchart TB
+    subgraph SWIFT["原生界面 · Swift 主线程"]
+        UI["SwiftUI / AppKit<br/>窗口 · 频道 · 聊天 · 菜单栏"]
+        MODEL["ClientModel<br/>界面状态 · 用户操作 · 事件处理"]
+        UI -->|用户操作| MODEL
+        MODEL -->|状态更新| UI
+    end
+
+    subgraph RUST["Rust 核心 · 静态链接"]
+        FFI["C ABI / FFI<br/>qs_command · qs_poll"]
+        SESSION["Tokio 会话<br/>连接 · 频道 · 消息 · 语音权限"]
+        PROTO["tsclientlib<br/>TS3 协议 · 域名发现 · 重连"]
+        AUDIO["音频模块<br/>Opus · 抖动缓冲 · 混音 · 重采样"]
+        FFI -->|命令队列| SESSION
+        SESSION -->|事件队列| FFI
+        SESSION <-->|协议命令与事件| PROTO
+        SESSION <-->|语音包与音频控制| AUDIO
+    end
+
+    MODEL -->|JSON 命令| FFI
+    FFI -->|JSON 事件 · 每 50ms 轮询| MODEL
+    MODEL <-->|收藏读写| PREFS["UserDefaults<br/>服务器收藏"]
+    MODEL <-->|身份与密码读写| KEYS["macOS Keychain<br/>身份密钥 · 服务器密码"]
+    PROTO <-->|UDP| SERVER["TeamSpeak 3 服务器"]
+    AUDIO <-->|音频回调| DEVICE["CPAL → CoreAudio<br/>麦克风 · 耳机 / 扬声器"]
+
+    classDef swift fill:#eaf1ff,stroke:#6689c7,color:#182e50;
+    classDef rust fill:#e8f5ef,stroke:#4c9977,color:#183e2d;
+    classDef storage fill:#fff5e4,stroke:#be9756,color:#593e1b;
+    classDef external fill:#f1f3f5,stroke:#87939e,color:#273746;
+    class UI,MODEL swift;
+    class FFI,SESSION,PROTO,AUDIO rust;
+    class PREFS,KEYS storage;
+    class SERVER,DEVICE external;

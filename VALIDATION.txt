@@ -1,0 +1,36 @@
+验证记录 · 2026-10-04 · QuietSpeak 0.1.2
+
+本地环境
+Apple Silicon arm64；Rust 1.95.0；Swift 6.3.3；CMake 4.4.3。
+使用全新的构建缓存编译，目标 macOS 14.0，Opus 静态链接。
+本地 RUSTUP_TOOLCHAIN=stable 对应的版本为 1.95.0，与仓库固定版本一致。
+
+源码质量
+Rustfmt、Clippy --all-targets --no-deps -D warnings、Swift-format strict 全部通过。
+Shell 脚本语法、版本一致性和文档相对链接检查通过。
+第三方补丁反向 git apply --check 通过，补丁覆盖现存本地改动。
+官方 actionlint 1.7.12（下载 SHA-256 已校验）验证两个工作流通过。
+新安装不预置私人服务器或昵称；现存 UserDefaults 和 Keychain 行为保留。
+
+自动测试
+9 项 Rust 测试及 Swift 模型检查通过，未启动真实麦克风或自动连接公共服务器。
+覆盖身份、FFI 中文 JSON 所有权、静音零发送、跨回调音频帧、输入重采样、
+OpusVoice/OpusMusic 编解码、起播乱序、重复/迟到包与较大序号跳变恢复、
+提示音音量与停止、实时回调下包延迟/回绕/单声道/立体声及输出采样率。
+Swift 覆盖地址、SRV、IPv6、频道排序、中文快照。
+
+App 构建
+Swift 和 Rust release 构建通过；codesign --verify --strict 通过。
+App 元数据、arm64 架构、Mach-O 最低版本 14.0、许可证和图标资源检查通过。
+动态依赖仅为系统框架和 /usr/lib；没有 Homebrew dylib 运行依赖。
+
+依赖与发布
+生成 262 个锁定依赖的声明与清单，覆盖两种 macOS 架构及构建/开发依赖。
+部分 crate 包缺少的许可证已从固定上游提交补齐，并记录 URL 与 SHA-256。
+发布脚本生成 App/source zip 与 SHA256SUMS；归档、源码权限及清单校验记录见发布文件。
+
+验证边界
+本地没有发布 GitHub 仓库，也没有运行远端 GitHub Actions。
+Intel App 的构建配置已添加，尚无 Intel 实机或远端运行结果。
+先前预览已有服务器登录与本机使用验证；本次未新增真人双向语音验收。
+蓝牙、更多系统版本、完整 TS3 兼容性和 Developer ID 公证仍待验证。
