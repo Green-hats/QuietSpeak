@@ -4,16 +4,24 @@ import SwiftUI
 @main struct QuietSpeakApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     @StateObject private var client = ClientModel()
+    @FocusedValue(\.channelSidebarVisibility) private var channelSidebarVisibility
     var body: some Scene {
         WindowGroup("轻语") {
             MainView().environmentObject(client)
-                .frame(minWidth: 680, minHeight: 620)
+                .frame(minWidth: 760, minHeight: 620)
                 .tint(Palette.accent)
                 .onAppear { delegate.client = client }
         }
         .defaultSize(width: 1120, height: 730)
         .windowStyle(.titleBar)
+        .windowToolbarStyle(.unified)
         .commands {
+            CommandGroup(after: .sidebar) {
+                if let visibility = channelSidebarVisibility {
+                    Toggle("显示频道列表", isOn: visibility)
+                        .keyboardShortcut("2", modifiers: [.command, .shift])
+                }
+            }
             CommandGroup(replacing: .newItem) {
                 Button("连接服务器…") { client.showConnection = true }.keyboardShortcut("k")
             }
@@ -63,20 +71,13 @@ enum Palette {
     static let accent = Color(red: 0.16, green: 0.47, blue: 0.37)
     static let speaking = Color(nsColor: .systemGreen)
     static let canvas = Color(nsColor: .textBackgroundColor)
-    static let brand = adaptive(light: (0.16, 0.47, 0.37), dark: (0.48, 0.75, 0.63))
-    static let sidebar = adaptive(light: (0.90, 0.94, 0.91), dark: (0.10, 0.16, 0.13))
-    static let channelPanel = adaptive(light: (0.96, 0.975, 0.96), dark: (0.135, 0.185, 0.16))
-    static let toolbar = adaptive(light: (0.95, 0.97, 0.95), dark: (0.13, 0.16, 0.145))
-    static let selection = adaptive(light: (0.81, 0.89, 0.84), dark: (0.16, 0.30, 0.23))
-
-    private static func adaptive(
-        light: (CGFloat, CGFloat, CGFloat), dark: (CGFloat, CGFloat, CGFloat)
-    ) -> Color {
-        Color(
-            nsColor: NSColor(name: nil) { appearance in
-                let rgb =
-                    appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? dark : light
-                return NSColor(srgbRed: rgb.0, green: rgb.1, blue: rgb.2, alpha: 1)
-            })
-    }
+    static let input = Color(nsColor: .controlBackgroundColor)
+    static let selection = Color.primary.opacity(0.06)
+    static let brand = Color(
+        nsColor: NSColor(name: nil) { appearance in
+            if appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua {
+                return NSColor(srgbRed: 0.48, green: 0.75, blue: 0.63, alpha: 1)
+            }
+            return NSColor(srgbRed: 0.16, green: 0.47, blue: 0.37, alpha: 1)
+        })
 }

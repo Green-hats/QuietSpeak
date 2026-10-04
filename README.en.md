@@ -1,6 +1,6 @@
 # QuietSpeak
 
-A compact native macOS TeamSpeak 3 client, built with SwiftUI and Rust. **0.1.5 development preview**. The current UI is in Simplified Chinese.
+A compact native macOS TeamSpeak 3 client, built with SwiftUI and Rust. **0.1.6 development preview**. The current UI is in Simplified Chinese.
 
 [中文](README.md) · [MIT license](LICENSE) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) · [Roadmap](Docs/ROADMAP.md)
 
@@ -12,17 +12,18 @@ Source is public; installer Releases remain drafts. Build locally using the inst
 
 ## Interface
 
-![QuietSpeak light appearance](Docs/screenshots/quietspeak-light.png)
+![QuietSpeak light appearance](Docs/screenshots/quietspeak-light.jpg)
 
-Content view rendered with fixture data. [Dark appearance](Docs/screenshots/quietspeak-dark.png).
+Native macOS window with fixture data. [Dark appearance](Docs/screenshots/quietspeak-dark.jpg).
 
-The two top-left buttons independently toggle the server and channel sidebars. Visibility persists across restarts; native dividers resize the panes. Green backgrounds distinguish the sidebars from the system content background in both appearances.
+Use the system toolbar sidebar button for servers and View → Show Channel List (`⌘⇧2`) for channels. Visibility persists across restarts and native dividers resize the panes. White content and system sidebar materials use green only for branding, actions and speaking states.
 
-The home logo is centered in the content pane. [Light home](Docs/screenshots/quietspeak-home-light.png) · [Dark home](Docs/screenshots/quietspeak-home-dark.png).
+The home logo is centered in the content pane. [Light home](Docs/screenshots/quietspeak-home-light.jpg) · [Dark home](Docs/screenshots/quietspeak-home-dark.jpg).
 
 ## Features
 
-- Green native SwiftUI/AppKit interface with independently collapsible, resizable sidebars, channel tree, member list and channel chat.
+- Native NavigationSplitView, List, toolbar, with resizable/collapsible sidebars, channels and chat.
+- Liquid Glass on macOS 26+, with native Material fallback on macOS 14–15.
 - Server bookmarks, SRV/TSDNS discovery, persistent identity and reconnection.
 - OpusVoice/OpusMusic audio, mixing, resampling and startup jitter buffering.
 - Foreground push-to-talk, continuous microphone mode, mute, deafen and volume.
@@ -45,7 +46,7 @@ Closing the window keeps the menu bar controls available. Use Quit to exit.
 
 ## Build and test
 
-Requires macOS, Xcode Command Line Tools including `swift-format`, Rust, CMake and Python 3.9+. Rust 1.95.0 and required components are pinned in `rust-toolchain.toml`. Initial builds download the toolchain and Cargo dependencies.
+Requires macOS, Xcode 26+ with its Command Line Tools selected (including `swift-format`), Rust, CMake and Python 3.9+. Older toolchains can build the Material fallback without Liquid Glass APIs. Rust 1.95.0 and required components are pinned in `rust-toolchain.toml`. Initial builds download the toolchain and Cargo dependencies.
 
 Vendored protocol and Opus sources are included in an ordinary clone or source archive; no submodule initialization is needed.
 

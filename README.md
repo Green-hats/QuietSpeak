@@ -1,6 +1,6 @@
 # 轻语 QuietSpeak
 
-简洁实用的原生 macOS TeamSpeak 3 开源客户端。当前版本为 **0.1.5 开发预览**，界面为简体中文。
+简洁实用的原生 macOS TeamSpeak 3 开源客户端。当前版本为 **0.1.6 开发预览**，界面为简体中文。
 
 [English](README.en.md) · [MIT 许可证](LICENSE) · [贡献指南](CONTRIBUTING.md) · [更新记录](CHANGELOG.md) · [开发路线](Docs/ROADMAP.md)
 
@@ -29,19 +29,20 @@ open dist/QuietSpeak.app
 
 ## 界面
 
-![QuietSpeak 浅色界面](Docs/screenshots/quietspeak-light.png)
+![QuietSpeak 浅色界面](Docs/screenshots/quietspeak-light.jpg)
 
-使用示例数据渲染的内容区预览。[深色外观](Docs/screenshots/quietspeak-dark.png)。
+使用虚构数据的原生 macOS 窗口预览。[深色外观](Docs/screenshots/quietspeak-dark.jpg)。
 
-左上角两个按钮分别显示或隐藏服务器栏、频道栏，退出后保留折叠状态。拖动两栏之间的分隔线可调整宽度。三栏分别使用浅绿、淡绿和系统内容背景，跟随系统切换深浅色。
+使用系统工具栏的侧栏按钮显示或隐藏服务器栏；“显示 → 显示频道列表”（`⌘⇧2`）控制频道栏。系统分隔线可调整宽度，分栏显示状态在退出后保留。白色内容区搭配系统侧栏材质，绿色用于 Logo、操作和说话状态。
 
-首页 Logo 居中放在右侧内容区。[浅色首页](Docs/screenshots/quietspeak-home-light.png) · [深色首页](Docs/screenshots/quietspeak-home-dark.png)。
+首页 Logo 居中放在右侧内容区。[浅色首页](Docs/screenshots/quietspeak-home-light.jpg) · [深色首页](Docs/screenshots/quietspeak-home-dark.jpg)。
 
 ## 功能
 
-- 绿色原生三栏界面，侧栏可独立折叠、调整宽度，适配系统深浅色模式。
+- NavigationSplitView 原生三栏、系统 List/工具栏，可折叠和调整宽度。
+- macOS 26 及以上使用系统液态玻璃；macOS 14–15 使用原生 Material 毛玻璃。
 - TS3 服务器连接、SRV/TSDNS 域名发现、固定身份和自动重连。
-- 服务器收藏、频道树、频道搜索、密码频道和可见成员列表。
+- 服务器收藏、频道树、密码频道和可见成员列表。
 - 频道文字消息收发，接收服务器消息和私信。
 - Opus 语音收发、多人混音、重采样和播放缓冲。
 - 麦克风关闭、耳机静音、按键/持续说话、输出音量和菜单栏控制。
@@ -65,7 +66,7 @@ Swift 负责用户操作，Rust 处理协议和音频。Rust 核心与 Opus 静�
 
 ## 项目架构
 
-以下图示对应当前 0.1.5 源码。整个客户端运行在一个 macOS App 进程内，Rust 核心和 Opus 静态链接到 App。
+以下图示对应当前 0.1.6 源码。整个客户端运行在一个 macOS App 进程内，Rust 核心和 Opus 静态链接到 App。
 
 ```mermaid
 flowchart TB
@@ -201,7 +202,7 @@ QuietSpeak/
 
 ## 构建
 
-需要 macOS、Xcode Command Line Tools（含 `swift-format`）、Rust、CMake 和 Python 3.9 或以上。`rust-toolchain.toml` 固定 Rust 1.95.0。
+需要 macOS、Xcode 26 或以上（选中其 Command Line Tools，含 `swift-format`）、Rust、CMake 和 Python 3.9 或以上。使用旧版工具链仍可构建 Material 外观，但不会包含液态玻璃 API。`rust-toolchain.toml` 固定 Rust 1.95.0。
 
 源码附带固定的第三方源代码，普通 Git clone 或解压源码包即可构建，无需初始化子模块。在项目根目录执行：
 

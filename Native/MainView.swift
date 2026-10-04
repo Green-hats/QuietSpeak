@@ -7,29 +7,19 @@ struct MainView: View {
     @State private var adding = false
     @State private var lockedChannel: Channel?
     @State private var channelPassword = ""
-    @AppStorage("showServerSidebar") private var showServers = true
-    @AppStorage("showChannelSidebar") private var showChannels = true
+    @AppStorage("nativeServerSidebarVisible") private var showServers = true
+    @AppStorage("nativeChannelSidebarVisible") private var showChannels = true
+    @State private var chatDraft = ""
     var body: some View {
         VStack(spacing: 0) {
-            header
-            Divider()
-            HSplitView {
-                if showServers {
-                    servers.frame(minWidth: 170, idealWidth: 194, maxWidth: 260)
-                }
-                if showChannels {
-                    channelList.frame(minWidth: 220, idealWidth: 272, maxWidth: 360)
-                }
-                conversation.frame(minWidth: 360, maxWidth: .infinity, maxHeight: .infinity)
-                    .layoutPriority(1)
-            }
-            Divider()
-            voiceBar
+            navigation.navigationSplitViewStyle(.balanced)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            voiceBar.padding(.horizontal, 12).padding(.vertical, 10)
         }
-        .frame(minWidth: showServers && showChannels ? 920 : 680)
-        .background(Palette.canvas)
+        .focusedSceneValue(\.channelSidebarVisibility, $showChannels)
         .sheet(isPresented: $client.showConnection) {
-            ConnectionSheet(bookmark: client.selectedServer, isNew: false).environmentObject(client)
+            ConnectionSheet(bookmark: client.selectedServer, isNew: false).environmentObject(
+                client)
         }
         .sheet(isPresented: $adding) {
             ConnectionSheet(bookmark: nil, isNew: true).environmentObject(client)
@@ -72,171 +62,130 @@ struct MainView: View {
             Text("加入 \(lockedChannel?.name ?? "")")
         }
     }
-    private var header: some View {
-        HStack(spacing: 10) {
-            sidebarButton("sidebar.left", name: "服务器栏", visible: $showServers)
-            sidebarButton("rectangle.split.2x1", name: "频道栏", visible: $showChannels)
-            Divider().frame(height: 18)
-            Circle().fill(client.connected ? Palette.speaking : Color.secondary.opacity(0.4))
-                .frame(width: 6, height: 6)
-            Text(client.status.label).font(.system(size: 12)).foregroundStyle(.secondary)
-            Spacer()
-            Button {
-                if client.busy { client.disconnect() } else { client.showConnection = true }
-            } label: {
-                HStack(spacing: 7) {
-                    Image(systemName: client.busy ? "xmark.circle" : "network")
-                        .font(.system(size: 18))
-                    Text(client.busy ? "断开" : "连接").font(.system(size: 13, weight: .medium))
+    private var columnVisibility: Binding<NavigationSplitViewVisibility> {
+        Binding(
+            get: { showServers ? .all : (showChannels ? .doubleColumn : .detailOnly) },
+            set: { visibility in
+                if visibility == .all {
+                    showServers = true
+                } else if visibility == .doubleColumn {
+                    showServers = !showChannels
+                } else if visibility == .detailOnly {
+                    showServers = false
                 }
-                .padding(.horizontal, 10).frame(height: 36)
-                .background(Palette.selection, in: RoundedRectangle(cornerRadius: 6))
-            }
-            .buttonStyle(.plain).foregroundStyle(Palette.brand)
-            .help(client.busy ? "断开连接" : "连接服务器 ⌘K")
-            Button {
-                client.showSettings = true
-            } label: {
-                Image(systemName: "slider.horizontal.3").font(.system(size: 19))
-                    .frame(width: 36, height: 36)
-            }
-            .buttonStyle(.plain).foregroundStyle(Palette.brand).help("语音设置 ⌘,")
-            .accessibilityLabel("语音设置")
-        }
-        .padding(.horizontal, 16).frame(height: 52).background(Palette.toolbar)
+            })
     }
-    private func sidebarButton(_ icon: String, name: String, visible: Binding<Bool>) -> some View {
-        Button {
-            visible.wrappedValue.toggle()
-        } label: {
-            Image(systemName: icon).font(.system(size: 16))
-                .foregroundStyle(visible.wrappedValue ? Palette.brand : Color.secondary)
-                .frame(width: 34, height: 32)
-                .background(
-                    visible.wrappedValue ? Palette.selection : Color.clear,
-                    in: RoundedRectangle(cornerRadius: 5))
+    @ViewBuilder private var navigation: some View {
+        if showChannels {
+            NavigationSplitView(columnVisibility: columnVisibility) {
+                servers
+            } content: {
+                channelList
+            } detail: {
+                detail
+            }
+        } else {
+            NavigationSplitView(columnVisibility: columnVisibility) {
+                servers
+            } detail: {
+                detail
+            }
         }
-        .buttonStyle(.plain)
-        .help((visible.wrappedValue ? "隐藏" : "显示") + name)
-        .accessibilityLabel((visible.wrappedValue ? "隐藏" : "显示") + name)
-        .accessibilityValue(visible.wrappedValue ? "展开" : "折叠")
+    }
+    private var detail: some View {
+        conversation
+            .frame(minWidth: 360, maxWidth: .infinity, maxHeight: .infinity)
+            .background(Palette.canvas)
+            .navigationTitle(client.selected?.name ?? "轻语")
+            .toolbar {
+                ToolbarItemGroup(placement: .primaryAction) {
+                    if let channel = client.selected, client.connected,
+                        channel.id != client.currentChannel
+                    {
+                        Button("加入频道", systemImage: "arrow.right.circle") { join(channel) }
+                            .help("加入选中的频道")
+                    }
+                    Button(
+                        client.busy ? "断开" : "连接",
+                        systemImage: client.busy ? "xmark.circle" : "network"
+                    ) {
+                        if client.busy { client.disconnect() } else { client.showConnection = true }
+                    }
+                    .labelStyle(.titleAndIcon).font(.system(size: 15))
+                    .help(client.busy ? "断开连接" : "连接服务器 ⌘K")
+                    Button("语音设置", systemImage: "slider.horizontal.3") {
+                        client.showSettings = true
+                    }
+                    .labelStyle(.iconOnly).font(.system(size: 18)).help("语音设置 ⌘,")
+                }
+            }
     }
     private var servers: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            HStack(spacing: 8) {
-                Image(nsImage: QuietSpeakIcon.template).renderingMode(.template)
-                    .foregroundStyle(Palette.brand).accessibilityHidden(true)
-                Text("服务器").font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
-                Spacer()
-                Button {
-                    adding = true
-                } label: {
-                    Image(systemName: "plus").font(.system(size: 12, weight: .medium))
-                }
-                .buttonStyle(.plain).help("添加服务器")
-            }.padding(.horizontal, 18).padding(.top, 22)
-            ScrollView {
-                VStack(spacing: 5) {
-                    ForEach(client.bookmarks) { item in
-                        Button {
-                            client.selectedBookmark = item.id
-                        } label: {
-                            HStack(spacing: 10) {
-                                Image(systemName: "server.rack").font(.system(size: 18))
-                                    .foregroundStyle(
-                                        client.selectedBookmark == item.id
-                                            ? Palette.brand : Color.secondary
-                                    )
-                                    .frame(width: 32, height: 36)
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(item.name).font(.system(size: 13, weight: .medium))
-                                        .lineLimit(1)
-                                    Text(
-                                        client.activeBookmark == item.id
-                                            ? client.status.label : item.address
-                                    ).font(.system(size: 10)).foregroundStyle(.secondary)
-                                }
-                                Spacer(minLength: 0)
-                                if client.activeBookmark == item.id {
-                                    Circle().fill(Palette.speaking).frame(width: 5, height: 5)
-                                }
-                            }
-                            .padding(9).background(
-                                client.selectedBookmark == item.id
-                                    ? Palette.selection : Color.clear,
-                                in: RoundedRectangle(cornerRadius: 6)
-                            )
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .simultaneousGesture(
-                            TapGesture(count: 2).onEnded {
-                                if !client.busy {
-                                    client.selectedBookmark = item.id
-                                    client.showConnection = true
-                                }
-                            }
-                        )
-                        .contextMenu {
-                            Button("连接…") {
-                                client.selectedBookmark = item.id
-                                client.showConnection = true
-                            }.disabled(client.busy)
-                            Button("编辑…") { editing = item }
-                            Button("移除收藏", role: .destructive) { client.removeBookmark(item) }
-                        }
+        List(selection: $client.selectedBookmark) {
+            ForEach(client.bookmarks) { item in
+                HStack(spacing: 10) {
+                    Image(systemName: "server.rack").foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(item.name).lineLimit(1)
+                        Text(client.activeBookmark == item.id ? client.status.label : item.address)
+                            .font(.caption).foregroundStyle(.secondary).lineLimit(1)
                     }
-                }.padding(.horizontal, 10)
+                    Spacer(minLength: 0)
+                    if client.activeBookmark == item.id, client.connected {
+                        Circle().fill(Palette.speaking).frame(width: 5, height: 5)
+                    }
+                }
+                .padding(.vertical, 4).tag(item.id)
+                .onTapGesture(count: 2) {
+                    if !client.busy {
+                        client.selectedBookmark = item.id
+                        client.showConnection = true
+                    }
+                }
+                .contextMenu {
+                    Button("连接…") {
+                        client.selectedBookmark = item.id
+                        client.showConnection = true
+                    }.disabled(client.busy)
+                    Button("编辑…") { editing = item }
+                    Button("移除收藏", role: .destructive) { client.removeBookmark(item) }
+                }
             }
-            Spacer(minLength: 0)
-        }.background(Palette.sidebar)
+        }
+        .listStyle(.sidebar)
+        .navigationTitle("服务器")
+        .navigationSplitViewColumnWidth(min: 170, ideal: 210, max: 300)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            Button("添加服务器", systemImage: "plus") { adding = true }
+                .buttonStyle(.borderless).foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading).padding(12)
+        }
     }
-
     private var channelList: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(client.connected ? client.serverName : (client.selectedServer?.name ?? "频道"))
-                    .font(.system(size: 15, weight: .semibold)).lineLimit(2)
-                if client.connected {
-                    Text("\(client.channels.count) 个频道 · \(client.members.count) 位成员")
-                        .font(.system(size: 11)).foregroundStyle(.secondary)
-                }
-                HStack(spacing: 6) {
-                    Image(systemName: "magnifyingglass").foregroundStyle(.tertiary)
-                    TextField("搜索频道", text: $client.search).textFieldStyle(.plain)
-                }
-                .font(.system(size: 12)).padding(8).background(
-                    .quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 7)
-                )
-                .padding(.top, 8)
-            }.padding(18)
-            Divider().padding(.horizontal, 18)
+        List(selection: $client.selectedChannel) {
+            ForEach(flatChannels, id: \.channel.id) { row in
+                channelRow(row.channel, depth: row.depth).tag(row.channel.id)
+            }
+        }
+        .listStyle(.inset)
+        .overlay {
             if client.channels.isEmpty {
                 VStack(spacing: 10) {
                     if client.busy { ProgressView().controlSize(.small) }
                     Text(client.busy ? "正在加载…" : "暂无频道")
-                        .font(.system(size: 12)).foregroundStyle(.tertiary)
-                }.frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                ScrollView {
-                    VStack(spacing: 3) {
-                        ForEach(flatChannels, id: \.channel.id) { row in
-                            channelRow(row.channel, depth: row.depth)
-                        }
-                        if flatChannels.isEmpty {
-                            Text("没有匹配的频道").foregroundStyle(.secondary).padding()
-                        }
-                    }.padding(.horizontal, 9).padding(.vertical, 12)
-                }
+                        .font(.callout).foregroundStyle(.tertiary)
+                }.allowsHitTesting(false)
             }
-        }.background(Palette.channelPanel)
+        }
+        .navigationTitle(
+            client.connected ? client.serverName : (client.selectedServer?.name ?? "频道")
+        )
+        .navigationSubtitle(
+            client.connected ? "\(client.channels.count) 个频道 · \(client.members.count) 位成员" : ""
+        )
+        .navigationSplitViewColumnWidth(min: 210, ideal: 260, max: 380)
     }
     private var flatChannels: [(channel: Channel, depth: Int)] {
-        if !client.search.isEmpty {
-            return client.channels.filter {
-                $0.name.localizedCaseInsensitiveContains(client.search)
-            }.sorted { $0.name < $1.name }.map { ($0, 0) }
-        }
         var output: [(channel: Channel, depth: Int)] = []
         var seen: Set<UInt64> = []
         func walk(_ parent: UInt64, _ depth: Int) {
@@ -253,48 +202,31 @@ struct MainView: View {
         return output
     }
     private func channelRow(_ channel: Channel, depth: Int) -> some View {
-        let selected = client.selectedChannel == channel.id
         let joined = client.currentChannel == channel.id
         let count = client.members.filter { $0.channel == channel.id }.count
-        return Button {
-            client.selectedChannel = channel.id
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: joined ? "waveform" : "number").font(
-                    .system(size: 13, weight: .medium)
-                )
+        return HStack(spacing: 8) {
+            Image(systemName: joined ? "waveform" : "number")
                 .foregroundStyle(joined ? Palette.brand : Color.secondary)
-                Text(channel.name).font(.system(size: 12, weight: selected ? .semibold : .regular))
-                    .lineLimit(1)
-                Spacer(minLength: 2)
-                if channel.locked {
-                    Image(systemName: "lock.fill").font(.system(size: 9)).foregroundStyle(.tertiary)
-                }
-                if count > 0 {
-                    Text("\(count)").font(.system(size: 10)).foregroundStyle(.secondary)
-                }
+            Text(channel.name).lineLimit(1)
+            Spacer(minLength: 2)
+            if channel.locked {
+                Image(systemName: "lock.fill").font(.caption2).foregroundStyle(.tertiary)
             }
-            .padding(.leading, 10 + CGFloat(min(depth, 4)) * 12).padding(.trailing, 10).frame(
-                height: 36
-            )
-            .background(
-                selected ? Palette.selection : Color.clear,
-                in: RoundedRectangle(cornerRadius: 7)
-            )
-            .contentShape(Rectangle())
-        }.buttonStyle(.plain)
-            .simultaneousGesture(
-                TapGesture(count: 2).onEnded {
-                    client.selectedChannel = channel.id
-                    join(channel)
-                }
-            )
-            .contextMenu {
-                Button("加入频道") {
-                    client.selectedChannel = channel.id
-                    join(channel)
-                }.disabled(!client.connected || joined)
-            }
+            if count > 0 { Text("\(count)").font(.caption).foregroundStyle(.secondary) }
+        }
+        .padding(.leading, CGFloat(min(depth, 4)) * 12).padding(.vertical, 5)
+        .listRowSeparator(.hidden)
+        .contentShape(Rectangle())
+        .onTapGesture(count: 2) {
+            client.selectedChannel = channel.id
+            join(channel)
+        }
+        .contextMenu {
+            Button("加入频道") {
+                client.selectedChannel = channel.id
+                join(channel)
+            }.disabled(!client.connected || joined)
+        }
     }
     private func join(_ channel: Channel) {
         if channel.id == client.currentChannel { return }
@@ -303,22 +235,14 @@ struct MainView: View {
     @ViewBuilder private var conversation: some View {
         if client.connected, let channel = client.selected {
             VStack(spacing: 0) {
-                HStack(alignment: .top, spacing: 12) {
-                    Image(systemName: "number").font(.system(size: 18, weight: .medium))
-                        .foregroundStyle(.secondary).frame(width: 20, height: 24)
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(channel.name).font(.system(size: 19, weight: .semibold)).lineLimit(2)
-                        if let topic = channel.topic, !topic.isEmpty {
-                            Text(topic).font(.system(size: 11)).foregroundStyle(.secondary)
-                                .lineLimit(2)
-                        }
-                    }
-                    Spacer(minLength: 0)
-                    if channel.id != client.currentChannel {
-                        Button("加入频道") { join(channel) }.buttonStyle(.borderedProminent)
-                            .controlSize(.small)
-                    }
-                }.padding(22)
+                Text(channel.name).font(.title2.weight(.semibold))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 22).padding(.top, 18).padding(.bottom, 12)
+                if let topic = channel.topic, !topic.isEmpty {
+                    Text(topic).font(.callout).foregroundStyle(.secondary)
+                        .lineLimit(2).frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 22).padding(.top, 12)
+                }
                 if !client.visibleMembers.isEmpty {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
@@ -332,7 +256,7 @@ struct MainView: View {
                     }
                 }
                 Divider().padding(.horizontal, 22)
-                ChatPane().environmentObject(client)
+                ChatPane(draft: $chatDraft).environmentObject(client)
             }
         } else {
             VStack(spacing: 16) {
@@ -379,7 +303,7 @@ struct MainView: View {
                         Text(channel.name).font(.system(size: 10)).foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
-                }.frame(width: 145, alignment: .leading)
+                }.frame(width: 120, alignment: .leading)
                 Divider().frame(height: 28)
                 voiceButton(
                     client.microphoneEnabled ? "mic.fill" : "mic.slash.fill",
@@ -388,8 +312,9 @@ struct MainView: View {
                 ) { client.toggleMicrophone() }
                 voiceButton(
                     client.deafened ? "speaker.slash.fill" : "headphones",
-                    label: client.deafened ? "恢复耳机" : "耳机静音", active: !client.deafened
+                    label: client.deafened ? "恢复耳机" : "耳机静音", active: client.deafened
                 ) { client.toggleDeafen() }
+                Spacer(minLength: 16)
                 Picker("说话方式", selection: $client.talkMode) {
                     ForEach(TalkMode.allCases) { Text($0.rawValue).tag($0) }
                 }
@@ -398,7 +323,6 @@ struct MainView: View {
                     client.holding = false
                     client.updateAudio()
                 }
-                Spacer(minLength: 8)
                 if client.talkMode == .pushToTalk {
                     HoldToTalk(
                         enabled: client.connected && client.microphoneEnabled && !client.deafened,
@@ -415,21 +339,18 @@ struct MainView: View {
                     .font(.system(size: 11)).foregroundStyle(
                         client.transmitting ? Palette.accent : Color.secondary)
                 }
-            }.padding(.horizontal, 20).frame(height: 64)
-        }.background(Palette.toolbar)
+            }.padding(.horizontal, 16).frame(height: 54)
+        }.modifier(VoicePanelMaterial())
     }
     private func voiceButton(
         _ icon: String, label: String, active: Bool, action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            Image(systemName: icon).font(.system(size: 15)).foregroundStyle(
-                active ? Color.primary : Color.secondary
-            )
-            .frame(width: 36, height: 36).background(
-                active ? Palette.selection : Color.clear,
-                in: RoundedRectangle(cornerRadius: 6))
+            Image(systemName: icon).font(.system(size: 17))
+                .foregroundStyle(active ? Palette.brand : Color.secondary)
+                .frame(width: 32, height: 32)
         }
-        .buttonStyle(.plain).disabled(!client.connected).help(label).accessibilityLabel(label)
+        .buttonStyle(.borderless).disabled(!client.connected).help(label).accessibilityLabel(label)
     }
 }
 
@@ -459,7 +380,7 @@ struct MemberPill: View {
 
 struct ChatPane: View {
     @EnvironmentObject var client: ClientModel
-    @State private var draft = ""
+    @Binding var draft: String
     var body: some View {
         VStack(spacing: 0) {
             ScrollViewReader { proxy in
@@ -535,8 +456,8 @@ struct ChatPane: View {
                         || draft.utf8.count > 1024
                 )
                 .accessibilityLabel("发送消息")
-            }.padding(12).background(Palette.sidebar, in: RoundedRectangle(cornerRadius: 7))
-                .overlay(RoundedRectangle(cornerRadius: 7).stroke(Color.secondary.opacity(0.12)))
+            }.padding(12).background(Palette.input, in: RoundedRectangle(cornerRadius: 12))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.12)))
                 .padding(.horizontal, 22).padding(.bottom, 7)
             HStack {
                 Text(draft.utf8.count > 1024 ? "消息超过 1024 字节，请缩短后发送" : "")

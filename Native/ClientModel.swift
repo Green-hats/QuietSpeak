@@ -50,7 +50,6 @@ enum TalkMode: String, CaseIterable, Identifiable {
     @Published var audioWarning: String?
     @Published var outputDevice = "系统默认输出设备"
     @Published var testingSpeakers = false
-    @Published var search = ""
     private var speakerTimes: [UInt16: Date] = [:]
     private var timer: Timer?
     private var eventMonitor: Any?
