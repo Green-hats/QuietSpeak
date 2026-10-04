@@ -1,109 +1,200 @@
+<div align="center">
+
+<img src="Docs/logo.svg" width="120" height="120" alt="QuietSpeak logo" />
+
 # QuietSpeak
 
-A compact native macOS TeamSpeak 3 client, built with SwiftUI and Rust. **0.1.7 development preview**. The current UI is in Simplified Chinese.
+**Native macOS · TeamSpeak 3 · Lightweight voice chat**
 
-[中文](README.md) · [MIT license](LICENSE) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) · [Roadmap](Docs/ROADMAP.md)
+Connect to your TeamSpeak 3 server, browse channels, talk and send messages in a native three-pane interface.
 
-QuietSpeak uses [ReSpeak/tsclientlib](https://github.com/ReSpeak/tsclientlib) for the TS3 protocol, CPAL for audio devices and Opus for audio coding. The native UI, application behavior, Swift/Rust bridge and device audio pipeline are implemented by QuietSpeak. Vendored sources retain their original licenses; see [Vendor documentation](Vendor/README.md).
+[![macOS](https://img.shields.io/badge/macOS-14%2B-303030?logo=apple&logoColor=white)](#quick-start) [![SwiftUI](https://img.shields.io/badge/UI-SwiftUI-F05138?logo=swift&logoColor=white)](Native/) [![Rust](https://img.shields.io/badge/Core-Rust-6E4C38?logo=rust&logoColor=white)](Core/) [![MIT](https://img.shields.io/badge/License-MIT-2E745C)](LICENSE) [![Preview](https://img.shields.io/badge/Status-Development_preview-2E745C)](CHANGELOG.md) [![CI](https://github.com/Green-hats/QuietSpeak/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Green-hats/QuietSpeak/actions/workflows/ci.yml)
 
-[GitHub](https://github.com/Green-hats/QuietSpeak) · [Build status](https://github.com/Green-hats/QuietSpeak/actions) · [Issues](https://github.com/Green-hats/QuietSpeak/issues)
+[简体中文](README.md) · [**English**](README.en.md)
 
-Source is public; installer Releases remain drafts. Build locally using the instructions below.
+[Quick start](#quick-start) · [Features](#features) · [Architecture](#architecture) · [Documentation](#documentation) · [Issues](https://github.com/Green-hats/QuietSpeak/issues)
 
-## Interface
+</div>
 
-![QuietSpeak light appearance](Docs/screenshots/quietspeak-light.jpg)
+---
 
-Native macOS window with fixture data. [Dark appearance](Docs/screenshots/quietspeak-dark.jpg).
+## Screenshots
 
-Use the system toolbar sidebar button for servers and View → Show Channel List (`⌘⇧2`) for channels. Visibility persists across restarts and native dividers resize the panes. White content and system sidebar materials use green only for branding, actions and speaking states.
+| Light appearance | Dark appearance |
+| :---: | :---: |
+| <img src="Docs/screenshots/quietspeak-light.jpg" width="480" alt="Light appearance: servers, channels and chat, with voice controls under the right workspace" /> | <img src="Docs/screenshots/quietspeak-dark.jpg" width="480" alt="Dark appearance: channel chat and glass voice controls" /> |
 
-The voice bar spans only the channel and chat workspace; the server sidebar extends to the bottom. Controls become compact in narrow windows.
+| Home · Light | Home · Dark |
+| :---: | :---: |
+| <img src="Docs/screenshots/quietspeak-home-light.jpg" width="480" alt="Light home: centered QuietSpeak logo and connection button" /> | <img src="Docs/screenshots/quietspeak-home-dark.jpg" width="480" alt="Dark home: server sidebar and voice controls within the right workspace" /> |
 
-The home logo is centered in the content pane. [Light home](Docs/screenshots/quietspeak-home-light.jpg) · [Dark home](Docs/screenshots/quietspeak-home-dark.jpg).
+Captured from native macOS windows using fictional servers, members and messages.
 
 ## Features
 
-- Native NavigationSplitView, List, toolbar, with resizable/collapsible sidebars, channels and chat.
-- Liquid Glass on macOS 26+, with native Material fallback on macOS 14–15.
-- Server bookmarks, SRV/TSDNS discovery, persistent identity and reconnection.
-- OpusVoice/OpusMusic audio, mixing, resampling and startup jitter buffering.
-- Foreground push-to-talk, continuous microphone mode, mute, deafen and volume.
-- Menu bar controls, local speaker test and output device name.
-- UserDefaults bookmarks and macOS Keychain identity/password storage.
+| Capability | Details |
+| --- | --- |
+| Native interface | SwiftUI / AppKit, system toolbar and collapsible, resizable sidebars |
+| System materials | White with green accents, dark appearance, Liquid Glass on macOS 26+ and Material on older systems |
+| Server connection | Direct TS3 connection, SRV / TSDNS discovery, persistent identity and automatic reconnection |
+| Channels | Channel tree, password-protected channels, visible members and server bookmarks |
+| Voice | OpusVoice / OpusMusic, multiple-speaker mixing, playback buffering and resampling |
+| Audio controls | Microphone mute, deafen, push-to-talk / continuous mode, output volume and local speaker test |
+| Messages | Send and receive channel messages; receive server messages and private messages |
+| macOS integration | Menu bar controls, UserDefaults bookmarks and login Keychain storage for identity keys and remembered passwords |
 
-## Run
+Current version: **0.1.7 development preview**. The UI is in Simplified Chinese. Source is public; installer Releases remain drafts. Build locally to try the App.
 
-The local prebuilt App is `dist/QuietSpeak.app`. Apple Silicon is locally validated and requires macOS 14 or later. Runtime dependencies are linked into the App; end users do not need Rust or Homebrew.
+## Quick start
+
+### Requirements
+
+| Tool | Requirement |
+| --- | --- |
+| macOS | 14 or later |
+| Xcode | 26+ recommended, with its Command Line Tools selected; the toolchain must include `swift-format` |
+| Rust | 1.95.0 pinned in `rust-toolchain.toml`, including rustfmt / clippy |
+| CMake | Builds the statically linked Opus library |
+| Python | 3.9 or later |
+
+Older Xcode toolchains can build the Material fallback without Liquid Glass APIs. Apple Silicon has been built and used locally. CI is configured for Apple Silicon and Intel; Intel hardware validation remains necessary.
+
+### Build and run
 
 ```bash
+git clone https://github.com/Green-hats/QuietSpeak.git
+cd QuietSpeak
+
+./build.sh
 open dist/QuietSpeak.app
 ```
 
-Add your server address, nickname and optional password, then join a channel. Fresh installations start with no private server bookmarks. Existing saved bookmarks and identities are preserved.
+The first build downloads the pinned Rust toolchain and Cargo dependencies. Protocol and Opus sources are included in the repository; no submodule initialization is needed.
 
-The microphone starts disabled. Enable it and grant the macOS microphone permission when prompted. Default push-to-talk uses the button or Option key while the App is in the foreground. Use continuous mode when another App is foreground. Changing channels disables the microphone; deafen also stops microphone transmission.
+The script builds for your Mac's architecture, creates `dist/QuietSpeak.app`, applies ad-hoc signing and verifies the bundle. Running the App requires no Rust, Homebrew or Opus installation. Developer ID signing and notarization are not yet available.
 
-Closing the window keeps the menu bar controls available. Use Quit to exit.
+### Start using the App
 
-## Build and test
+1. Add a server address, nickname and optional password, then connect and join a channel. Protected channels request their own password.
+2. The microphone starts disabled. Enable it and grant macOS microphone permission.
+3. Default push-to-talk uses the bottom button or `⌥ Option`. Keyboard push-to-talk works only while QuietSpeak is in the foreground; use continuous mode when working in another App.
+4. Open audio settings to adjust playback volume, view the output device or run the local speaker test.
 
-Requires macOS, Xcode 26+ with its Command Line Tools selected (including `swift-format`), Rust, CMake and Python 3.9+. Older toolchains can build the Material fallback without Liquid Glass APIs. Rust 1.95.0 and required components are pinned in `rust-toolchain.toml`. Initial builds download the toolchain and Cargo dependencies.
+Changing channels disables the microphone. Deafen also stops voice transmission. Closing the window keeps menu bar controls available; use Quit to exit.
 
-Vendored protocol and Opus sources are included in an ordinary clone or source archive; no submodule initialization is needed.
+### Interface controls
 
-```bash
-./check.sh
-./test.sh
-./build.sh
-python3 Scripts/package-release.py
-```
+| Action | Control |
+| --- | --- |
+| Show / hide servers | System toolbar sidebar button |
+| Show / hide channels | View → Show Channel List, or `⌘⇧2` |
+| Resize panes | Drag the system dividers |
+| Connect | Top-right connection button, or `⌘K` |
+| Audio settings | Top-right settings button, or `⌘,` |
 
-- `check.sh`: Rust formatting, Clippy, Swift formatting, shell syntax and version consistency.
-- `test.sh`: Rust unit tests and Swift model checks, without microphone capture or automatic public-server connections.
-- `build.sh`: locked release build, generated notices, static linking, app icon, ad-hoc signing and bundle verification.
-- `package-release.py`: verified App/source archives and SHA-256 files in `dist/releases/`.
-
-Build caches default to `work/build/`; the App defaults to `dist/QuietSpeak.app`. Paths can be changed with `QUIETSPEAK_BUILD_DIR`, `QUIETSPEAK_APP_PATH`, `CARGO_HOME` and `CARGO_TARGET_DIR`.
-
-The optional read-only smoke example accepts an explicitly supplied test server and remains input-muted:
-
-```bash
-MACOSX_DEPLOYMENT_TARGET=14.0 OPUS_STATIC=1 OPUS_NO_PKG=1 \
-  cargo run --manifest-path Core/Cargo.toml --release --locked --example smoke -- 127.0.0.1:9987
-```
+Sidebar visibility persists across restarts. Voice controls span only the channel and chat workspace, follow its width and switch to a compact layout in narrow windows.
 
 ## Architecture
 
 ```mermaid
 flowchart TB
-    UI[SwiftUI / AppKit] <-->|State and actions| MODEL[ClientModel]
-    MODEL -->|JSON commands| FFI[C ABI bridge]
-    FFI -->|JSON events polled every 50ms| MODEL
-    FFI <-->|Queues| SESSION[Tokio session]
-    SESSION <--> PROTO[tsclientlib]
-    PROTO <-->|UDP| SERVER[TeamSpeak 3 server]
-    SESSION <--> AUDIO[Opus / jitter buffer / mixer / resampler]
-    AUDIO <--> DEVICE[CPAL / CoreAudio devices]
-    MODEL <--> STORAGE[UserDefaults / Keychain]
+    UI["SwiftUI / AppKit<br/>Windows · Channels · Chat · Menu bar"] <-->|State and actions| MODEL["ClientModel"]
+    MODEL -->|JSON commands| FFI["C ABI / FFI bridge"]
+    FFI -->|JSON events · 50ms polling| MODEL
+    FFI <-->|Command and event queues| SESSION["Rust / Tokio session"]
+    SESSION <--> PROTO["ReSpeak / tsclientlib"]
+    PROTO <-->|UDP| SERVER["TeamSpeak 3 server"]
+    SESSION <--> AUDIO["Opus · Playback buffer<br/>Mixing · Resampling"]
+    AUDIO <--> DEVICE["CPAL / CoreAudio<br/>Microphone · Headphones / Speakers"]
+    MODEL <--> STORAGE["UserDefaults / Keychain"]
 ```
 
-All components run in one App process. Swift manages UI state on MainActor; a dedicated Rust thread runs a single-threaded Tokio runtime. Device callbacks execute the Capture and Renderer audio code. Audio PCM stays within the Rust audio pipeline. See the Chinese README and editable [overview](Docs/architecture.mmd) / [audio flow](Docs/audio-flow.mmd) for details.
+Swift manages UI state and user actions; Rust handles the protocol and audio. All components run in one App process. The Rust core and Opus are statically linked, and PCM audio stays in the Rust pipeline.
 
-## Status and limitations
+The TS3 protocol is based on [ReSpeak/tsclientlib](https://github.com/ReSpeak/tsclientlib). QuietSpeak implements the native UI, application behavior, Swift / Rust bridge and device audio pipeline.
 
-The local Apple Silicon build and tests are validated. CI is configured for arm64 (`macos-15`) and x86_64 (`macos-15-intel`), see [Actions](https://github.com/Green-hats/QuietSpeak/actions) for build results. Intel device behavior still requires manual validation.
+| Layer | Technology |
+| --- | --- |
+| UI and system integration | SwiftUI · AppKit · AVFoundation |
+| Network core | Rust · Tokio · ReSpeak/tsclientlib |
+| Audio | CPAL / CoreAudio · Opus / audiopus |
+| Language bridge | C ABI · JSON commands and events |
+| Local storage | UserDefaults · macOS Keychain |
+| Build and quality | Cargo · Xcode · CMake · Python · GitHub Actions |
 
-Supported voice codecs are OpusVoice and OpusMusic. Global push-to-talk, echo cancellation, voice activation, private-message sending, file transfer, permission management and identity import are not implemented. Audio uses the system default devices; reconnect after a device change if audio stops.
+Thread boundaries, FFI ownership and the complete audio flow are documented in [Architecture](Docs/ARCHITECTURE.md) (Chinese).
 
-The App uses ad-hoc signing and is not notarized. Manual two-endpoint audio, Bluetooth and additional macOS version checks remain necessary. Validation records are in `VALIDATION.txt`.
+## Project layout
 
-## Contribute and release
+```text
+QuietSpeak/
+├── Native/                   # SwiftUI / AppKit, state, storage and shared icon
+├── Core/
+│   ├── src/lib.rs            # TS3 session, commands, events and FFI
+│   ├── src/audio.rs          # Device audio, mixing and resampling
+│   ├── src/chat.rs           # Send confirmation, echoes and regression tests
+│   └── examples/smoke.rs     # Input-muted server check
+├── Vendor/                   # Pinned upstream sources, licenses and patches
+├── Resources/                # App configuration and microphone entitlement
+├── Scripts/                  # Icons, version checks, notices and packaging
+├── Tests/                    # Swift model checks
+├── Docs/                     # Architecture, screenshots, roadmap and releases
+├── .github/                  # Dual-architecture CI, drafts and templates
+├── build.sh / check.sh / test.sh
+├── dist/                     # Generated App and packages (not tracked)
+└── work/                     # Build cache (not tracked)
+```
 
-Read [CONTRIBUTING](CONTRIBUTING.md), [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md), [SECURITY](SECURITY.md) and the [release guide](Docs/RELEASING.md). Version tags trigger dual-architecture builds and prepare a GitHub Release draft for maintainer review.
+## Development and validation
 
-## Licensing and attribution
+```bash
+./check.sh                    # Formatting, Clippy, shell syntax and versions
+./test.sh                     # Rust tests and Swift model checks
+./build.sh                    # Build, sign and verify the App
+python3 Scripts/package-release.py
+```
 
-QuietSpeak project code is MIT licensed. Third-party sources keep their original licenses, including MIT/Apache-2.0 for tsclientlib, ISC for audiopus_sys and the bundled Opus license. See `THIRD_PARTY_NOTICES.txt`, [dependency inventory](Docs/DEPENDENCIES.json) and [vendor provenance](Vendor/PROVENANCE.json).
+Packaging writes App / source ZIPs and SHA-256 files to `dist/releases/`. Override build paths with `QUIETSPEAK_BUILD_DIR`, `QUIETSPEAK_APP_PATH`, `CARGO_HOME` and `CARGO_TARGET_DIR`.
 
-QuietSpeak is independent of TeamSpeak Systems GmbH and is not an official TeamSpeak product.
+15 Rust tests and Swift model checks have passed locally, covering audio frames, codecs, packet ordering, resampling, chat echoes, address validation and channel ordering. Tests do not automatically connect to public servers or capture microphone audio. Two-endpoint calls, Bluetooth, Intel hardware and additional macOS versions still need manual validation; see [Validation records](VALIDATION.txt) and [CI builds](https://github.com/Green-hats/QuietSpeak/actions).
+
+Version tags trigger dual-architecture builds and prepare a Release draft for maintainer review. See the [release guide](Docs/RELEASING.md).
+
+## Limitations and troubleshooting
+
+- Voice supports OpusVoice / OpusMusic only, without Speex / CELT.
+- Global push-to-talk, voice activation, echo cancellation, private-message sending, file transfer, permission management and identity import are not implemented.
+- Audio uses the system default devices. Reconnect if audio stops after changing Bluetooth or other devices.
+
+**No sound:** Check that deafen is off and volume is above zero. Run the speaker test and check the output device in System Settings → Sound.
+
+**`No route to host`:** Check your network and proxy environment. Do not append the default port to an SRV hostname; let the client discover the server port.
+
+## Documentation
+
+| Document | Contents |
+| --- | --- |
+| [Architecture](Docs/ARCHITECTURE.md) | Threads, FFI, queues and audio flow |
+| [Roadmap](Docs/ROADMAP.md) | Validation work and planned features |
+| [Contributing](CONTRIBUTING.md) | Environment, checks and contribution process |
+| [Release guide](Docs/RELEASING.md) | Packaging, signing and Release drafts |
+| [Changelog](CHANGELOG.md) | Features and fixes by version |
+| [Validation records](VALIDATION.txt) | Automated tests and hardware checks |
+| [Vendor documentation](Vendor/README.md) | Pinned upstream revisions and patches |
+| [Security policy](SECURITY.md) | Reporting security issues |
+
+## Contributing
+
+Report issues or submit PRs through [GitHub](https://github.com/Green-hats/QuietSpeak/issues). For audio issues, include macOS version, architecture, audio devices and channel codec. Read the [contributing guide](CONTRIBUTING.md) before submitting code.
+
+## License and acknowledgements
+
+QuietSpeak project code is licensed under [MIT](LICENSE). Third-party sources retain their own licenses.
+
+- [ReSpeak/tsclientlib](https://github.com/ReSpeak/tsclientlib) — TeamSpeak 3 protocol and received-audio handling.
+- [CPAL](https://github.com/RustAudio/cpal) — Cross-platform audio device interface.
+- [Opus](https://opus-codec.org/) / [audiopus](https://github.com/Lakelezz/audiopus) — Voice codec and Rust bindings.
+
+See [Vendor documentation](Vendor/README.md) for upstream revisions, audio queue changes and build patches; [Third-party notices](THIRD_PARTY_NOTICES.txt) and [DEPENDENCIES.json](Docs/DEPENDENCIES.json) list licenses and dependencies.
+
+QuietSpeak is independent of TeamSpeak and is not an official TeamSpeak product.

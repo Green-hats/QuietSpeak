@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 100 100" role="img" aria-labelledby="title">
+  <title id="title">QuietSpeak 轻语</title>
+  <!-- Same normalized geometry as Native/BrandMark.swift; SVG reverses the AppKit Y axis. -->
+  <g transform="translate(0 100) scale(1 -1)" fill="#2e745c" stroke="#2e745c">
+    <rect x="8" y="18" width="76" height="76" rx="22" fill="none" stroke-width="7.5" />
+    <path d="M65 24 L90 6" fill="none" stroke-width="7.5" stroke-linecap="round" />
+    <g stroke="none">
+      <rect x="27" y="44" width="6.5" height="24" rx="3.3" />
+      <rect x="43" y="35" width="6.5" height="42" rx="3.3" />
+      <rect x="59" y="41" width="6.5" height="30" rx="3.3" />
+    </g>
+  </g>
+</svg>
