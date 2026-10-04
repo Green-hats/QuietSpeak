@@ -1,12 +1,12 @@
 # 轻语 QuietSpeak
 
-简洁实用的原生 macOS TeamSpeak 3 开源客户端。当前版本为 **0.1.3 开发预览**，界面为简体中文。
+简洁实用的原生 macOS TeamSpeak 3 开源客户端。当前版本为 **0.1.4 开发预览**，界面为简体中文。
 
 [English](README.en.md) · [MIT 许可证](LICENSE) · [贡献指南](CONTRIBUTING.md) · [更新记录](CHANGELOG.md) · [开发路线](Docs/ROADMAP.md)
 
 项目基于 [ReSpeak/tsclientlib](https://github.com/ReSpeak/tsclientlib) 实现 TS3 协议，并使用 CPAL 和 Opus；原生界面、业务逻辑、Swift/Rust 桥接及音频设备处理由 QuietSpeak 实现。第三方来源和补丁见 [Vendor 说明](Vendor/README.md)。
 
-目前已完成本地开源仓库整理；GitHub 远端和正式 Release 尚未发布。源码、文档和构建流程可用于独立维护。
+[GitHub 仓库](https://github.com/Green-hats/QuietSpeak) · [下载开发预览](https://github.com/Green-hats/QuietSpeak/releases) · [问题反馈](https://github.com/Green-hats/QuietSpeak/issues)
 
 ## 运行
 
@@ -24,6 +24,12 @@ open dist/QuietSpeak.app
 6. 打开语音设置调整播放音量、查看输出设备，或点击“测试扬声器”播放本地提示音。
 
 关闭窗口后 App 仍保留菜单栏控制；选择“退出轻语”才会退出。
+
+## 界面
+
+![QuietSpeak 浅色界面](Docs/screenshots/quietspeak-light.png)
+
+使用示例数据渲染的内容区预览。[深色外观](Docs/screenshots/quietspeak-dark.png)。
 
 ## 功能
 
@@ -53,7 +59,7 @@ Swift 负责用户操作，Rust 处理协议和音频。Rust 核心与 Opus 静�
 
 ## 项目架构
 
-以下图示对应当前 0.1.3 源码。整个客户端运行在一个 macOS App 进程内，Rust 核心和 Opus 静态链接到 App。
+以下图示对应当前 0.1.4 源码。整个客户端运行在一个 macOS App 进程内，Rust 核心和 Opus 静态链接到 App。
 
 ```mermaid
 flowchart TB
@@ -164,7 +170,7 @@ QuietSpeak/
 ├── LICENSE / CONTRIBUTING.md   # 许可和贡献流程
 ├── .github/                   # 双架构 CI、Release 草稿、Issue/PR 模板
 ├── Docs/                      # 架构、音频链路、路线、依赖和发布指南
-├── Native/                    # SwiftUI、AppKit、模型和钥匙串
+├── Native/                    # SwiftUI、AppKit、模型、共享图标和钥匙串
 ├── Core/
 │   ├── src/lib.rs             # TS3 会话、命令、事件和 FFI
 │   ├── src/chat.rs            # 发送确认、回显处理和聊天回归测试
@@ -207,7 +213,7 @@ QUIETSPEAK_APP_PATH="$PWD/dist/QuietSpeak.app" \
 ./build.sh
 ```
 
-也支持 `CARGO_HOME` 和 `CARGO_TARGET_DIR`。本地验证的是 arm64；CI 已配置 arm64 与 x86_64 构建，但远端 CI 和 Intel 实际运行尚未验收。
+也支持 `CARGO_HOME` 和 `CARGO_TARGET_DIR`。本地验证的是 arm64；GitHub Actions 配置 arm64 与 x86_64 构建。自动构建结果见 [Actions](https://github.com/Green-hats/QuietSpeak/actions)，Intel 实机行为仍需验证。
 
 ## 测试与验证
 

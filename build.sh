@@ -14,7 +14,10 @@ xcrun swiftc -parse-as-library -swift-version 5 -O -module-cache-path "$BUILD_RO
   -framework CoreAudio -framework AudioToolbox -framework CoreFoundation -framework SystemConfiguration \
   -lresolv -o "$APP_PATH/Contents/MacOS/QuietSpeak"
 cp "$PROJECT_ROOT/Resources/Info.plist" "$APP_PATH/Contents/Info.plist"
-xcrun swift -module-cache-path "$BUILD_ROOT/swift-cache" "$PROJECT_ROOT/Scripts/make-icon.swift" "$BUILD_ROOT/icon.png"
+xcrun swiftc -parse-as-library -module-cache-path "$BUILD_ROOT/swift-cache" \
+  "$PROJECT_ROOT/Native/BrandMark.swift" "$PROJECT_ROOT/Scripts/make-icon.swift" \
+  -o "$BUILD_ROOT/icon-generator"
+"$BUILD_ROOT/icon-generator" "$BUILD_ROOT/icon.png"
 mkdir -p "$BUILD_ROOT/AppIcon.iconset"
 for SIZE in 16 32 128 256 512; do
   sips -z "$SIZE" "$SIZE" "$BUILD_ROOT/icon.png" --out "$BUILD_ROOT/AppIcon.iconset/icon_${SIZE}x${SIZE}.png" >/dev/null

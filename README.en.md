@@ -1,12 +1,18 @@
 # QuietSpeak
 
-A compact native macOS TeamSpeak 3 client, built with SwiftUI and Rust. **0.1.3 development preview**. The current UI is in Simplified Chinese.
+A compact native macOS TeamSpeak 3 client, built with SwiftUI and Rust. **0.1.4 development preview**. The current UI is in Simplified Chinese.
 
 [中文](README.md) · [MIT license](LICENSE) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) · [Roadmap](Docs/ROADMAP.md)
 
 QuietSpeak uses [ReSpeak/tsclientlib](https://github.com/ReSpeak/tsclientlib) for the TS3 protocol, CPAL for audio devices and Opus for audio coding. The native UI, application behavior, Swift/Rust bridge and device audio pipeline are implemented by QuietSpeak. Vendored sources retain their original licenses; see [Vendor documentation](Vendor/README.md).
 
-The local open-source repository is prepared. A GitHub remote and public Release have not been created yet.
+[GitHub](https://github.com/Green-hats/QuietSpeak) · [Development releases](https://github.com/Green-hats/QuietSpeak/releases) · [Issues](https://github.com/Green-hats/QuietSpeak/issues)
+
+## Interface
+
+![QuietSpeak light appearance](Docs/screenshots/quietspeak-light.png)
+
+Content view rendered with fixture data. [Dark appearance](Docs/screenshots/quietspeak-dark.png).
 
 ## Features
 
@@ -77,7 +83,7 @@ All components run in one App process. Swift manages UI state on MainActor; a de
 
 ## Status and limitations
 
-The local Apple Silicon build and tests are validated. CI is configured for arm64 (`macos-15`) and x86_64 (`macos-15-intel`), but remote workflow execution and Intel device behavior remain unverified until the repository is hosted and tested.
+The local Apple Silicon build and tests are validated. CI is configured for arm64 (`macos-15`) and x86_64 (`macos-15-intel`), see [Actions](https://github.com/Green-hats/QuietSpeak/actions) for build results. Intel device behavior still requires manual validation.
 
 Supported voice codecs are OpusVoice and OpusMusic. Global push-to-talk, echo cancellation, voice activation, private-message sending, file transfer, permission management and identity import are not implemented. Audio uses the system default devices; reconnect after a device change if audio stops.
 
@@ -85,7 +91,7 @@ The App uses ad-hoc signing and is not notarized. Manual two-endpoint audio, Blu
 
 ## Contribute and release
 
-Read [CONTRIBUTING](CONTRIBUTING.md), [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md), [SECURITY](SECURITY.md) and the [release guide](Docs/RELEASING.md). Version tags trigger dual-architecture builds and prepare a GitHub Release draft for maintainer review. Local preparation does not publish a repository or release.
+Read [CONTRIBUTING](CONTRIBUTING.md), [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md), [SECURITY](SECURITY.md) and the [release guide](Docs/RELEASING.md). Version tags trigger dual-architecture builds and prepare a GitHub Release draft for maintainer review.
 
 ## Licensing and attribution
 

@@ -1,4 +1,4 @@
-QuietSpeak 0.1.3 — third-party notices
+QuietSpeak 0.1.4 — third-party notices
 QuietSpeak project code is MIT licensed; see the bundled LICENSE.
 Third-party code keeps its original licenses below. This inventory includes
 locked macOS, build and development dependencies; it is not a list

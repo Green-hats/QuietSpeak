@@ -14,28 +14,17 @@ struct ConnectionSheet: View {
     @FocusState private var addressFocused: Bool
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            HStack(spacing: 12) {
-                Image(systemName: "server.rack").font(.system(size: 24)).foregroundStyle(
-                    Palette.accent
-                )
-                .frame(width: 50, height: 50).background(
-                    Palette.accent.opacity(0.08), in: RoundedRectangle(cornerRadius: 13))
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(isNew ? "添加服务器" : "连接服务器").font(.system(size: 21, weight: .semibold))
-                    Text("输入 TeamSpeak 3 服务器地址即可连接").font(.system(size: 12)).foregroundStyle(
-                        .secondary)
-                }
-            }
+            Text(isNew ? "添加服务器" : "连接服务器").font(.system(size: 17, weight: .semibold))
             VStack(alignment: .leading, spacing: 15) {
-                field("收藏名称", hint: "例如：朋友的服务器", text: $name)
+                field("名称", hint: "服务器名称", text: $name)
                 VStack(alignment: .leading, spacing: 6) {
                     Text("服务器地址").font(.system(size: 12, weight: .medium))
                     TextField("域名或 IP:9987", text: $address).textFieldStyle(.roundedBorder).focused(
                         $addressFocused)
-                    Text("默认语音端口为 9987，支持 IPv4 和 IPv6").font(.system(size: 10)).foregroundStyle(
+                    Text("默认端口 9987").font(.system(size: 10)).foregroundStyle(
                         .secondary)
                 }
-                field("你的昵称", hint: "频道里显示的名字", text: $nickname)
+                field("昵称", hint: "昵称", text: $nickname)
                 VStack(alignment: .leading, spacing: 6) {
                     Text("服务器密码").font(.system(size: 12, weight: .medium))
                     SecureField("没有密码可留空", text: $password).textFieldStyle(.roundedBorder)
@@ -88,7 +77,7 @@ struct SettingsSheet: View {
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            Text("语音设置").font(.system(size: 22, weight: .semibold))
+            Text("语音设置").font(.system(size: 17, weight: .semibold))
             VStack(alignment: .leading, spacing: 12) {
                 Picker("说话方式", selection: $client.talkMode) {
                     ForEach(TalkMode.allCases) { Text($0.rawValue).tag($0) }
@@ -100,8 +89,8 @@ struct SettingsSheet: View {
                 }
                 Text(
                     client.talkMode == .pushToTalk
-                        ? "开启麦克风后，按住底部按钮或 ⌥ Option 说话。键盘按键说话仅在轻语位于前台时生效。"
-                        : "开启麦克风后持续发送语音。离开时请点击麦克风按钮关闭。"
+                        ? "开启麦克风后，按住底部按钮或 ⌥ 说话。快捷键仅在前台有效。"
+                        : "开启麦克风后持续发送语音。"
                 )
                 .font(.system(size: 12)).foregroundStyle(.secondary).fixedSize(
                     horizontal: false, vertical: true)
@@ -123,7 +112,6 @@ struct SettingsSheet: View {
                     Button(client.testingSpeakers ? "播放中…" : "测试扬声器") { client.testSpeakers() }
                         .disabled(client.testingSpeakers)
                 }
-                Text("播放一声本地提示音，连接前也可测试。").font(.system(size: 10)).foregroundStyle(.secondary)
                 if let warning = client.audioWarning {
                     Label(warning, systemImage: "exclamationmark.triangle").font(.system(size: 11))
                         .foregroundStyle(.orange)
@@ -131,14 +119,14 @@ struct SettingsSheet: View {
                 }
             }
             VStack(alignment: .leading, spacing: 7) {
-                Label("使用 macOS 默认输入和输出设备", systemImage: "headphones")
-                Text("设备请在系统设置 → 声音中选择。蓝牙耳机和设备切换后如无声音，请重新连接服务器。")
+                Text("使用系统音频设备")
+                Text("在系统设置 → 声音中切换。切换后无声音时，请重新连接。")
                     .foregroundStyle(.secondary)
             }.font(.system(size: 11)).fixedSize(horizontal: false, vertical: true)
             Divider()
             HStack {
                 Text(
-                    "轻语 \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "") · 开源开发预览"
+                    "轻语 \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "")"
                 ).font(.system(size: 10)).foregroundStyle(.tertiary)
                 Spacer()
                 Button("完成") { dismiss() }.keyboardShortcut(.defaultAction).buttonStyle(

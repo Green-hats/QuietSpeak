@@ -29,7 +29,7 @@ enum TalkMode: String, CaseIterable, Identifiable {
     @Published var selectedBookmark: UUID?
     @Published var activeBookmark: UUID?
     @Published var status: ConnectionStatus = .offline
-    @Published var statusDetail = "选择服务器，开始交流"
+    @Published var statusDetail = "选择服务器"
     @Published var serverName = "轻语"
     @Published var channels: [Channel] = []
     @Published var members: [Member] = []

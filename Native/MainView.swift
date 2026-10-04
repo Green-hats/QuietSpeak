@@ -68,20 +68,10 @@ struct MainView: View {
     }
     private var header: some View {
         HStack(spacing: 10) {
-            Spacer().frame(width: 65)
-            Image(systemName: "waveform").font(.title3.weight(.semibold)).foregroundStyle(
-                Palette.accent)
-            Text("轻语").font(.system(size: 17, weight: .semibold))
-            Text("TS3").font(.system(size: 10, weight: .medium, design: .rounded)).foregroundStyle(
-                .secondary
-            )
-            .padding(.horizontal, 6).padding(.vertical, 3).background(.quaternary, in: Capsule())
+            Circle().fill(client.connected ? Palette.speaking : Color.secondary.opacity(0.4))
+                .frame(width: 6, height: 6)
+            Text(client.status.label).font(.system(size: 12)).foregroundStyle(.secondary)
             Spacer()
-            HStack(spacing: 6) {
-                Circle().fill(client.connected ? Palette.accent : Color.secondary.opacity(0.4))
-                    .frame(width: 6, height: 6)
-                Text(client.status.label).font(.system(size: 12)).foregroundStyle(.secondary)
-            }
             if client.busy {
                 Button {
                     client.disconnect()
@@ -92,8 +82,8 @@ struct MainView: View {
                 Button {
                     client.showConnection = true
                 } label: {
-                    Label("连接服务器", systemImage: "bolt.fill")
-                }.buttonStyle(.borderedProminent).controlSize(.small)
+                    Label("连接", systemImage: "network")
+                }.buttonStyle(.bordered).controlSize(.small)
             }
             Button {
                 client.showSettings = true
@@ -102,11 +92,13 @@ struct MainView: View {
             }
             .buttonStyle(.plain).help("语音设置 ⌘,")
         }
-        .padding(.horizontal, 16).frame(height: 56)
+        .padding(.horizontal, 18).frame(height: 44).background(Palette.sidebar)
     }
     private var servers: some View {
         VStack(alignment: .leading, spacing: 18) {
-            HStack {
+            HStack(spacing: 8) {
+                Image(nsImage: QuietSpeakIcon.template).renderingMode(.template)
+                    .foregroundStyle(.secondary).accessibilityHidden(true)
                 Text("服务器").font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
                 Spacer()
                 Button {
@@ -126,7 +118,7 @@ struct MainView: View {
                                 Image(systemName: "server.rack").font(.system(size: 18))
                                     .foregroundStyle(
                                         client.selectedBookmark == item.id
-                                            ? Palette.accent : Color.secondary
+                                            ? Color.primary : Color.secondary
                                     )
                                     .frame(width: 32, height: 36)
                                 VStack(alignment: .leading, spacing: 4) {
@@ -134,18 +126,18 @@ struct MainView: View {
                                         .lineLimit(1)
                                     Text(
                                         client.activeBookmark == item.id
-                                            ? client.status.label : "点击连接"
+                                            ? client.status.label : item.address
                                     ).font(.system(size: 10)).foregroundStyle(.secondary)
                                 }
                                 Spacer(minLength: 0)
                                 if client.activeBookmark == item.id {
-                                    Circle().fill(Palette.accent).frame(width: 5, height: 5)
+                                    Circle().fill(Palette.speaking).frame(width: 5, height: 5)
                                 }
                             }
                             .padding(9).background(
                                 client.selectedBookmark == item.id
-                                    ? Palette.accent.opacity(0.10) : Color.clear,
-                                in: RoundedRectangle(cornerRadius: 10)
+                                    ? Palette.selection : Color.clear,
+                                in: RoundedRectangle(cornerRadius: 6)
                             )
                             .contentShape(Rectangle())
                         }
@@ -170,26 +162,18 @@ struct MainView: View {
                 }.padding(.horizontal, 10)
             }
             Spacer(minLength: 0)
-            VStack(alignment: .leading, spacing: 8) {
-                Text("少一点干扰，\n多一点交流。")
-                    .font(.system(size: 13, weight: .medium)).foregroundStyle(.secondary)
-                    .lineSpacing(5)
-                Text("原生 macOS · TeamSpeak 3")
-                    .font(.system(size: 9)).foregroundStyle(.tertiary)
-            }.padding(18)
-        }.background(Palette.sidebar.opacity(0.65))
+        }.background(Palette.sidebar)
     }
+
     private var channelList: some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 8) {
                 Text(client.connected ? client.serverName : (client.selectedServer?.name ?? "频道"))
                     .font(.system(size: 15, weight: .semibold)).lineLimit(2)
-                Text(
-                    client.connected
-                        ? "\(client.channels.count) 个频道 · \(client.members.count) 位可见成员"
-                        : "连接后查看频道和成员"
-                )
-                .font(.system(size: 11)).foregroundStyle(.secondary)
+                if client.connected {
+                    Text("\(client.channels.count) 个频道 · \(client.members.count) 位成员")
+                        .font(.system(size: 11)).foregroundStyle(.secondary)
+                }
                 HStack(spacing: 6) {
                     Image(systemName: "magnifyingglass").foregroundStyle(.tertiary)
                     TextField("搜索频道", text: $client.search).textFieldStyle(.plain)
@@ -201,14 +185,10 @@ struct MainView: View {
             }.padding(18)
             Divider().padding(.horizontal, 18)
             if client.channels.isEmpty {
-                VStack(spacing: 12) {
-                    Image(
-                        systemName: client.busy
-                            ? "antenna.radiowaves.left.and.right" : "rectangle.3.group"
-                    ).font(.system(size: 29, weight: .light)).foregroundStyle(.tertiary)
-                    Text(client.busy ? "正在获取频道…" : "频道会出现在这里").font(.system(size: 12))
-                        .foregroundStyle(.secondary)
+                VStack(spacing: 10) {
                     if client.busy { ProgressView().controlSize(.small) }
+                    Text(client.busy ? "正在加载…" : "暂无频道")
+                        .font(.system(size: 12)).foregroundStyle(.tertiary)
                 }.frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
@@ -222,7 +202,7 @@ struct MainView: View {
                     }.padding(.horizontal, 9).padding(.vertical, 12)
                 }
             }
-        }.background(Palette.sidebar.opacity(0.28))
+        }.background(Palette.canvas)
     }
     private var flatChannels: [(channel: Channel, depth: Int)] {
         if !client.search.isEmpty {
@@ -256,7 +236,7 @@ struct MainView: View {
                 Image(systemName: joined ? "waveform" : "number").font(
                     .system(size: 13, weight: .medium)
                 )
-                .foregroundStyle(joined ? Palette.accent : Color.secondary)
+                .foregroundStyle(joined ? Color.primary : Color.secondary)
                 Text(channel.name).font(.system(size: 12, weight: selected ? .semibold : .regular))
                     .lineLimit(1)
                 Spacer(minLength: 2)
@@ -271,7 +251,7 @@ struct MainView: View {
                 height: 36
             )
             .background(
-                selected ? Palette.accent.opacity(0.11) : Color.clear,
+                selected ? Palette.selection : Color.clear,
                 in: RoundedRectangle(cornerRadius: 7)
             )
             .contentShape(Rectangle())
@@ -297,27 +277,19 @@ struct MainView: View {
         if client.connected, let channel = client.selected {
             VStack(spacing: 0) {
                 HStack(alignment: .top, spacing: 12) {
-                    Image(systemName: "number").font(.system(size: 20, weight: .light))
-                        .foregroundStyle(Palette.accent)
-                        .padding(10).background(
-                            Palette.accent.opacity(0.07), in: RoundedRectangle(cornerRadius: 10))
+                    Image(systemName: "number").font(.system(size: 18, weight: .medium))
+                        .foregroundStyle(.secondary).frame(width: 20, height: 24)
                     VStack(alignment: .leading, spacing: 5) {
                         Text(channel.name).font(.system(size: 19, weight: .semibold)).lineLimit(2)
-                        Text(
-                            channel.topic?.isEmpty == false
-                                ? channel.topic!
-                                : (channel.id == client.currentChannel
-                                    ? "正在这个频道交流" : "预览频道 · 加入后即可交流")
-                        )
-                        .font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(2)
+                        if let topic = channel.topic, !topic.isEmpty {
+                            Text(topic).font(.system(size: 11)).foregroundStyle(.secondary)
+                                .lineLimit(2)
+                        }
                     }
                     Spacer(minLength: 0)
                     if channel.id != client.currentChannel {
                         Button("加入频道") { join(channel) }.buttonStyle(.borderedProminent)
                             .controlSize(.small)
-                    } else {
-                        Label("已加入", systemImage: "checkmark.circle.fill").font(.system(size: 11))
-                            .foregroundStyle(Palette.accent)
                     }
                 }.padding(22)
                 if !client.visibleMembers.isEmpty {
@@ -336,26 +308,17 @@ struct MainView: View {
                 ChatPane().environmentObject(client)
             }
         } else {
-            VStack(spacing: 16) {
-                Image(systemName: "waveform").font(.system(size: 42, weight: .light))
-                    .foregroundStyle(Palette.accent)
-                    .frame(width: 100, height: 100).background(
-                        Palette.accent.opacity(0.08), in: RoundedRectangle(cornerRadius: 29))
-                Text(client.busy ? "正在建立连接" : "交流，从连接开始").font(.system(size: 24, weight: .semibold))
-                Text(client.statusDetail).font(.system(size: 13)).foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center).frame(maxWidth: 360)
+            VStack(spacing: 12) {
+                Text(client.busy ? "正在连接…" : "选择服务器")
+                    .font(.system(size: 15, weight: .medium)).foregroundStyle(.secondary)
                 if client.busy {
-                    ProgressView().controlSize(.small).padding(.top, 8)
+                    Text(client.statusDetail).font(.system(size: 12)).foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center).frame(maxWidth: 360)
+                    ProgressView().controlSize(.small)
                 } else {
-                    Button {
-                        client.showConnection = true
-                    } label: {
-                        Label("连接服务器", systemImage: "bolt.fill").padding(.horizontal, 10).padding(
-                            .vertical, 4)
-                    }.buttonStyle(.borderedProminent).padding(.top, 8)
+                    Button("连接服务器…") { client.showConnection = true }
+                        .buttonStyle(.bordered).controlSize(.regular)
                 }
-                Text("频道 · 语音 · 文字聊天").font(.system(size: 11)).foregroundStyle(.tertiary).padding(
-                    .top, 12)
             }.frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
@@ -375,17 +338,18 @@ struct MainView: View {
                     Color.orange.opacity(0.06))
             }
             HStack(spacing: 12) {
-                Image(systemName: "person.crop.circle.fill").font(.system(size: 28))
-                    .foregroundStyle(Palette.accent.opacity(0.75))
+                Image(systemName: "person.crop.circle").font(.system(size: 24))
+                    .foregroundStyle(.secondary)
                 VStack(alignment: .leading, spacing: 3) {
                     Text(
                         client.members.first(where: { $0.id == client.ownID })?.name ?? client
                             .selectedServer?.nickname ?? "你"
                     )
                     .font(.system(size: 12, weight: .semibold)).lineLimit(1)
-                    Text(client.joined?.name ?? "尚未加入语音频道").font(.system(size: 10)).foregroundStyle(
-                        .secondary
-                    ).lineLimit(1)
+                    if let channel = client.joined {
+                        Text(channel.name).font(.system(size: 10)).foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
                 }.frame(width: 145, alignment: .leading)
                 Divider().frame(height: 28)
                 voiceButton(
@@ -422,19 +386,19 @@ struct MainView: View {
                     .font(.system(size: 11)).foregroundStyle(
                         client.transmitting ? Palette.accent : Color.secondary)
                 }
-            }.padding(.horizontal, 20).frame(height: 76)
-        }.background(Palette.sidebar.opacity(0.45))
+            }.padding(.horizontal, 20).frame(height: 64)
+        }.background(Palette.sidebar)
     }
     private func voiceButton(
         _ icon: String, label: String, active: Bool, action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
             Image(systemName: icon).font(.system(size: 15)).foregroundStyle(
-                active ? Palette.accent : Color.secondary
+                active ? Color.primary : Color.secondary
             )
             .frame(width: 36, height: 36).background(
-                active ? Palette.accent.opacity(0.08) : Color.secondary.opacity(0.06),
-                in: RoundedRectangle(cornerRadius: 9))
+                active ? Palette.selection : Color.clear,
+                in: RoundedRectangle(cornerRadius: 6))
         }
         .buttonStyle(.plain).disabled(!client.connected).help(label).accessibilityLabel(label)
     }
@@ -446,7 +410,7 @@ struct MemberPill: View {
     let speaking: Bool
     var body: some View {
         HStack(spacing: 6) {
-            Circle().fill(speaking ? Palette.accent : Color.secondary.opacity(0.25)).frame(
+            Circle().fill(speaking ? Palette.speaking : Color.secondary.opacity(0.3)).frame(
                 width: 6, height: 6)
             Text(member.name + (isOwn ? "（你）" : "")).lineLimit(1)
             if member.deafened {
@@ -454,15 +418,11 @@ struct MemberPill: View {
             } else if member.muted {
                 Image(systemName: "mic.slash.fill").font(.system(size: 9))
             }
-        }.font(.system(size: 11)).foregroundStyle(speaking ? Palette.accent : Color.secondary)
+        }.font(.system(size: 12)).foregroundStyle(.secondary)
             .padding(.horizontal, 10).padding(.vertical, 7)
             .background(
-                speaking ? Palette.accent.opacity(0.10) : Color.secondary.opacity(0.06),
-                in: Capsule()
-            )
-            .overlay(
-                Capsule().stroke(
-                    speaking ? Palette.accent.opacity(0.35) : Color.clear, lineWidth: 1)
+                speaking ? Palette.speaking.opacity(0.08) : Color.clear,
+                in: RoundedRectangle(cornerRadius: 5)
             )
             .accessibilityLabel("\(member.name)\(isOwn ? "，你" : "")\(speaking ? "，正在说话" : "")")
     }
@@ -475,25 +435,30 @@ struct ChatPane: View {
         VStack(spacing: 0) {
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 20) {
+                    LazyVStack(alignment: .leading, spacing: 16) {
                         if client.visibleMessages.isEmpty {
                             VStack(spacing: 10) {
                                 Image(systemName: "bubble.left.and.bubble.right").font(
                                     .system(size: 26, weight: .light))
                                 Text("还没有消息").font(.system(size: 13))
-                                Text("简单聊两句，或者直接开始说话").font(.system(size: 11))
                             }.foregroundStyle(.tertiary).frame(maxWidth: .infinity).padding(
                                 .top, 65)
                         }
                         ForEach(client.visibleMessages) { message in
                             HStack(alignment: .top, spacing: 10) {
-                                Image(
-                                    systemName: message.scope == "system"
-                                        ? "info.circle" : "person.crop.circle.fill"
-                                )
-                                .font(.system(size: 25)).foregroundStyle(
-                                    message.outgoing ? Palette.accent : Color.secondary.opacity(0.5)
-                                )
+                                if message.scope == "system" {
+                                    Image(systemName: "info.circle").font(.system(size: 20))
+                                        .foregroundStyle(.secondary).frame(width: 26, height: 26)
+                                } else {
+                                    Text(String(message.sender.prefix(1))).font(
+                                        .system(size: 12, weight: .medium)
+                                    )
+                                    .foregroundStyle(.secondary).frame(width: 26, height: 26)
+                                    .background(
+                                        Palette.selection, in: RoundedRectangle(cornerRadius: 6)
+                                    )
+                                    .accessibilityHidden(true)
+                                }
                                 VStack(alignment: .leading, spacing: 6) {
                                     HStack(spacing: 8) {
                                         Text(message.sender).font(
@@ -525,7 +490,7 @@ struct ChatPane: View {
             }
             HStack(spacing: 10) {
                 TextField(
-                    client.canChat ? "发送消息到当前频道…" : "加入频道后即可发送消息", text: $draft, axis: .vertical
+                    client.canChat ? "发送消息…" : "加入频道后发送消息", text: $draft, axis: .vertical
                 )
                 .lineLimit(1...4).textFieldStyle(.plain).font(.system(size: 13)).disabled(
                     !client.canChat
@@ -541,11 +506,11 @@ struct ChatPane: View {
                         || draft.utf8.count > 1024
                 )
                 .accessibilityLabel("发送消息")
-            }.padding(12).background(Palette.sidebar, in: RoundedRectangle(cornerRadius: 10))
-                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.secondary.opacity(0.12)))
+            }.padding(12).background(Palette.sidebar, in: RoundedRectangle(cornerRadius: 7))
+                .overlay(RoundedRectangle(cornerRadius: 7).stroke(Color.secondary.opacity(0.12)))
                 .padding(.horizontal, 22).padding(.bottom, 7)
             HStack {
-                Text(draft.utf8.count > 1024 ? "消息超过 1024 字节，请缩短后发送" : "文字消息只发送到已加入的频道")
+                Text(draft.utf8.count > 1024 ? "消息超过 1024 字节，请缩短后发送" : "")
                 Spacer()
                 Text("Return 发送")
             }.font(.system(size: 9)).foregroundStyle(

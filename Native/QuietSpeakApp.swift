@@ -12,7 +12,7 @@ import SwiftUI
                 .onAppear { delegate.client = client }
         }
         .defaultSize(width: 1120, height: 730)
-        .windowStyle(.hiddenTitleBar)
+        .windowStyle(.titleBar)
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button("连接服务器…") { client.showConnection = true }.keyboardShortcut("k")
@@ -31,7 +31,7 @@ import SwiftUI
                 Button("语音设置…") { client.showSettings = true }.keyboardShortcut(",")
             }
         }
-        MenuBarExtra("轻语", systemImage: client.transmitting ? "waveform" : "headphones") {
+        MenuBarExtra {
             Text(client.connected ? client.serverName : "轻语 · 未连接")
             if let channel = client.joined { Text(channel.name) }
             Divider()
@@ -46,6 +46,10 @@ import SwiftUI
             Button("断开连接") { client.disconnect() }.disabled(!client.busy)
             Divider()
             Button("退出轻语") { NSApp.terminate(nil) }
+        } label: {
+            Image(nsImage: QuietSpeakIcon.template)
+                .renderingMode(.template)
+                .accessibilityLabel(client.transmitting ? "轻语，正在说话" : "轻语")
         }
     }
 }
@@ -56,8 +60,9 @@ import SwiftUI
 }
 
 enum Palette {
-    static let accent = Color(red: 0.16, green: 0.56, blue: 0.46)
-    static let pale = Color.accentColor.opacity(0.06)
-    static let canvas = Color(nsColor: .windowBackgroundColor)
-    static let sidebar = Color(nsColor: .controlBackgroundColor)
+    static let accent = Color(nsColor: .systemBlue)
+    static let speaking = Color(nsColor: .systemGreen)
+    static let canvas = Color(nsColor: .textBackgroundColor)
+    static let sidebar = Color(nsColor: .windowBackgroundColor)
+    static let selection = Color.primary.opacity(0.07)
 }

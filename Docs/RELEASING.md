@@ -22,7 +22,7 @@ shasum -a 256 -c SHA256SUMS-arm64.txt
 
 `release.yml` 调用双架构 CI，成功后创建 **Release 草稿**。维护者核对两个架构包、源码包、校验文件和发行说明，再手动发布草稿。
 
-本地整理不会创建远端、推送标签或发布 GitHub Release。自动构建产物使用 ad-hoc 签名，Developer ID 签名与公证尚未接入。
+仓库地址为 `https://github.com/Green-hats/QuietSpeak`。发布开发预览时，将核对后的草稿设为 prerelease。自动构建产物使用 ad-hoc 签名，Developer ID 签名与公证尚未接入。
 
 公开仓库时还需启用 Issues、Private vulnerability reporting，并为 `main` 配置 CI 状态检查。先运行远端 CI，不能把本地通过当作 GitHub Actions 已通过。
 
