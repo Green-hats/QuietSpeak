@@ -1,6 +1,6 @@
 # QuietSpeak
 
-A compact native macOS TeamSpeak 3 client, built with SwiftUI and Rust. **0.1.2 development preview**. The current UI is in Simplified Chinese.
+A compact native macOS TeamSpeak 3 client, built with SwiftUI and Rust. **0.1.3 development preview**. The current UI is in Simplified Chinese.
 
 [中文](README.md) · [MIT license](LICENSE) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) · [Roadmap](Docs/ROADMAP.md)
 

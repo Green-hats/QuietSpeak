@@ -1,6 +1,8 @@
 mod audio;
+mod chat;
 
 use anyhow::{anyhow, Context, Result};
+use chat::{ChatDelivery, PendingChat};
 use futures::StreamExt;
 use serde::Deserialize;
 use serde_json::{json, Value};
@@ -13,8 +15,8 @@ use std::{
 };
 use tokio::sync::mpsc;
 use tsclientlib::{
-    events::Event, prelude::*, ChannelId, ClientId, Codec, Connection, DisconnectOptions, Identity,
-    MessageHandle, MessageTarget, StreamItem,
+    prelude::*, ChannelId, ClientId, Codec, Connection, DisconnectOptions, Identity, MessageTarget,
+    StreamItem,
 };
 use tsproto_packets::packets::AudioData;
 
@@ -163,13 +165,6 @@ pub unsafe extern "C" fn qs_free_string(value: *mut c_char) {
     }
 }
 
-struct PendingChat {
-    text: String,
-    channel: u64,
-    nickname: String,
-    own: u16,
-}
-
 async fn session(
     address: String,
     nickname: String,
@@ -198,7 +193,7 @@ async fn session(
     let mut connecting_since = Instant::now();
     let mut requested_mic = false;
     let mut deafened = false;
-    let mut pending: HashMap<MessageHandle, PendingChat> = HashMap::new();
+    let mut chat_delivery = ChatDelivery::default();
     let mut speakers: HashMap<ClientId, Instant> = HashMap::new();
     let mut heartbeat = tokio::time::interval(Duration::from_millis(250));
     loop {
@@ -229,7 +224,7 @@ async fn session(
                             let own = s.clients.get(&s.own_client).context("尚未连接")?;
                             let chat = PendingChat{text:text.clone(),channel:own.channel.0,nickname:own.name.clone(),own:own.id.0};
                             let handle = s.send_message(MessageTarget::Channel,&text).send_with_result(&mut con)?;
-                            pending.insert(handle,chat);
+                            chat_delivery.track(handle,chat);
                             Ok(())
                         })();
                         if let Err(e) = result { emit(json!({"type":"error","message":e.to_string()})); }
@@ -285,12 +280,9 @@ async fn session(
                             con.get_state()?.server.set_subscribed(true).send_with_result(&mut con)?;
                         }
                         for event in events {
-                            if let Event::Message{target,invoker,message} = event {
-                                let channel = con.get_state().ok().and_then(|s|s.clients.get(&s.own_client)).map(|c|c.channel.0).unwrap_or(0);
-                                let scope = match target {MessageTarget::Channel=>"channel",MessageTarget::Server=>"server",_=>"private"};
-                                let outgoing = con.get_state().map(|s|s.own_client == invoker.id).unwrap_or(false);
-                                emit(json!({"type":"chat","sender":invoker.name,"client":invoker.id.0,"text":message,"channel":channel,"scope":scope,"outgoing":outgoing}));
-                            }
+                            let channel = con.get_state().ok().and_then(|s|s.clients.get(&s.own_client)).map(|c|c.channel.0).unwrap_or(0);
+                            let own = con.get_state().ok().map(|s|s.own_client);
+                            if let Some(message) = chat::notification(event,own,channel) {emit(message);}
                         }
                         publish_snapshot(&con,&audio);
                     },
@@ -315,15 +307,12 @@ async fn session(
                         requested_mic = false;
                         audio.set_capture(false)?;
                         audio.reset();
-                        pending.clear();
+                        chat_delivery.clear();
                         emit(json!({"type":"reconnecting"}));
                     },
                     StreamItem::MessageResult(handle,result) => {
-                        let chat = pending.remove(&handle);
-                        match result {
-                            Ok(()) => {if let Some(c)=chat {emit(json!({"type":"chat","sender":c.nickname,"client":c.own,"text":c.text,"channel":c.channel,"scope":"channel","outgoing":true}));}},
-                            Err(e) => emit(json!({"type":"error","message":format!("服务器拒绝操作：{e}")})),
-                        }
+                        if let Some(message) = chat_delivery.complete(handle,result.is_ok()) {emit(message);}
+                        if let Err(e) = result {emit(json!({"type":"error","message":format!("服务器拒绝操作：{e}")}));}
                     },
                     StreamItem::AudioChange(_) => {
                         if !con.can_receive_audio() {audio.reset();}

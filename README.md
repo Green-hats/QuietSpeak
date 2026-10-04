@@ -1,6 +1,6 @@
 # 轻语 QuietSpeak
 
-简洁实用的原生 macOS TeamSpeak 3 开源客户端。当前版本为 **0.1.2 开发预览**，界面为简体中文。
+简洁实用的原生 macOS TeamSpeak 3 开源客户端。当前版本为 **0.1.3 开发预览**，界面为简体中文。
 
 [English](README.en.md) · [MIT 许可证](LICENSE) · [贡献指南](CONTRIBUTING.md) · [更新记录](CHANGELOG.md) · [开发路线](Docs/ROADMAP.md)
 
@@ -53,7 +53,7 @@ Swift 负责用户操作，Rust 处理协议和音频。Rust 核心与 Opus 静�
 
 ## 项目架构
 
-以下图示对应当前 0.1.2 源码。整个客户端运行在一个 macOS App 进程内，Rust 核心和 Opus 静态链接到 App。
+以下图示对应当前 0.1.3 源码。整个客户端运行在一个 macOS App 进程内，Rust 核心和 Opus 静态链接到 App。
 
 ```mermaid
 flowchart TB
@@ -150,6 +150,8 @@ flowchart TB
 
 会话线程和输出回调用 `Arc<Mutex<AudioHandler>>` 共享接收队列；麦克风门控、音量和本地提示音等控制使用原子变量。输入回调通过容量为 5 的 `mpsc` 队列提交已编码语音包。离线扬声器测试会短暂创建单独的本地测试线程。
 
+自己的频道消息按发送操作的成功确认显示，忽略服务器对自己频道消息的回显；每次发送独立跟踪，因此相同文字可以连续发送。其他成员的消息通过服务器通知显示。
+
 事件队列最多保留 512 个事件，并合并被新快照替代的旧快照。`qs_poll` 返回 Rust 分配的 UTF-8 JSON 字符串，Swift 使用后调用 `qs_free_string` 释放。
 
 可编辑图源：[总体架构](Docs/architecture.mmd) · [音频链路](Docs/audio-flow.mmd)。
@@ -165,6 +167,7 @@ QuietSpeak/
 ├── Native/                    # SwiftUI、AppKit、模型和钥匙串
 ├── Core/
 │   ├── src/lib.rs             # TS3 会话、命令、事件和 FFI
+│   ├── src/chat.rs            # 发送确认、回显处理和聊天回归测试
 │   ├── src/audio.rs           # 音频输入输出、重采样和回归测试
 │   └── examples/smoke.rs      # 登录、读取状态及静音检查
 ├── Vendor/
@@ -216,7 +219,7 @@ QUIETSPEAK_APP_PATH="$PWD/dist/QuietSpeak.app" \
 
 `check.sh` 检查 Rust 格式、Clippy、Swift 格式、脚本语法和版本；`test.sh` 运行本地测试，不自动访问公共服务器或打开真实麦克风。
 
-已通过 9 项 Rust 测试及 Swift 模型检查，覆盖身份、中文 FFI JSON、静音零发送、跨回调音频帧拼接、44.1kHz 输入转换、OpusVoice/OpusMusic 编解码、起播乱序、迟到和重复包、序号跳变恢复、本地提示音及实时输出回调。
+已通过 15 项 Rust 测试及 Swift 模型检查，覆盖身份、中文 FFI JSON、静音零发送、跨回调音频帧拼接、44.1kHz 输入转换、OpusVoice/OpusMusic 编解码、起播乱序、迟到和重复包、序号跳变恢复、本地提示音及实时输出回调；聊天测试覆盖确认/回显顺序、相同文字的独立发送、失败/重连和其他成员消息。
 
 实时回调测试覆盖最高 25ms 包延迟、u16 包序号回绕、16/44.1/48kHz 输出，以及单声道和立体声。Swift 检查覆盖域名/SRV/IPv6/端口校验、频道排序和中文快照。
 
